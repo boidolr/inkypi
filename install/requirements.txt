@@ -10,7 +10,7 @@ pytz==2025.2
 openai==2.14.0
 numpy==2.2.1
 icalendar==6.3.1
-recurring-ical-events==3.7.0
+recurring-ical-events==3.8.0
 psutil==7.0.0
 cysystemd==2.0.1
 waitress==3.0.2
