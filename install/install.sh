@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # =============================================================================
 # Script Name: install.sh
@@ -6,7 +6,7 @@
 #              the InkyPI service.
 #
 # Usage: ./install.sh [-W <waveshare_device>]
-#        -W <waveshare_device> (optional) Install for a Waveshare device, 
+#        -W <waveshare_device> (optional) Install for a Waveshare device,
 #                               specifying the device model type, e.g. epd7in3e.
 #
 #                               If not specified then the Pimoroni Inky display
@@ -31,7 +31,6 @@ APPNAME="inkypi"
 INSTALL_PATH="/usr/local/$APPNAME"
 SRC_PATH="$SCRIPT_DIR/../src"
 BINPATH="/usr/local/bin"
-VENV_PATH="$INSTALL_PATH/venv_$APPNAME"
 
 SERVICE_FILE="$APPNAME.service"
 SERVICE_FILE_SOURCE="$SCRIPT_DIR/$SERVICE_FILE"
@@ -40,14 +39,14 @@ SERVICE_FILE_TARGET="/etc/systemd/system/$SERVICE_FILE"
 APT_REQUIREMENTS_FILE="$SCRIPT_DIR/debian-requirements.txt"
 PY_REQUIREMENTS_FILE="$SCRIPT_DIR/../pyproject.toml"
 
-# 
+#
 # Additional requirements for Waveshare support.
 #
 # empty means no WS support required, otherwise we expect the type of display
 # as per the WS naming convention.
 WS_TYPE=""
 
-# Parse the agumments, looking for the -W option.
+# Parse the arguments, looking for the -W option.
 parse_arguments() {
     while getopts ":W:" opt; do
         case $opt in
@@ -128,7 +127,7 @@ enable_interfaces(){
         echo "dtoverlay for spi0-2cs already specified"
     fi
   else
-    # TODO - check if really need the dtparam set for INKY as this seems to be 
+    # TODO - check if really need the dtparam set for INKY as this seems to be
     # only for the older screens (as per INKY docs)
     echo "Enabling single CS line for SPI interface in config.txt"
     if ! grep -E -q '^[[:space:]]*dtoverlay=spi0-0cs' /boot/firmware/config.txt; then
@@ -136,7 +135,7 @@ enable_interfaces(){
     else
         echo "dtoverlay for spi0-0cs already specified"
     fi
-  fi 
+  fi
 }
 
 show_loader() {
@@ -181,7 +180,7 @@ echo_blue() {
 install_debian_dependencies() {
   if [ -f "$APT_REQUIREMENTS_FILE" ]; then
     sudo apt-get update > /dev/null &
-    show_loader "Fetch available system dependencies updates. " 
+    show_loader "Fetch available system dependencies updates. "
 
     xargs -a "$APT_REQUIREMENTS_FILE" sudo apt-get install -y > /dev/null &
     show_loader "Installing system dependencies. "
@@ -206,15 +205,12 @@ setup_earlyoom_service() {
 
 create_venv(){
   echo "Creating python virtual environment. "
-  python3 -m venv "$VENV_PATH"
-  $VENV_PATH/bin/python -m pip install --upgrade pip setuptools wheel > /dev/null
-
   if [[ -n "$WS_TYPE" ]]; then
     echo "Installing with waveshare extras."
-    $VENV_PATH/bin/python -m pip install -e "$PY_REQUIREMENTS_FILE[waveshare]" -qq > /dev/null &
+    uv --directory "$INSTALL_PATH" sync --python 3.13 --extra waveshare inkypi -qq > /dev/null &
     show_loader "\tInstalling python dependencies with waveshare support. "
   else
-    $VENV_PATH/bin/python -m pip install -e "$SCRIPT_DIR/.." -qq > /dev/null &
+    uv --directory "$INSTALL_PATH" sync --python 3.13 -qq > /dev/null &
     show_loader "\tInstalling python dependencies. "
   fi
 }
@@ -261,7 +257,7 @@ update_config() {
       if grep -q '"display_type":' "$DEVICE_JSON"; then
           # Update existing display_type value
           sed -i "s/\"display_type\": \".*\"/\"display_type\": \"$WS_TYPE\"/" "$DEVICE_JSON"
-          echo "Updated display_type to: $WS_TYPE" 
+          echo "Updated display_type to: $WS_TYPE"
       else
           # Append display_type safely, ensuring proper comma placement
           if grep -q '}$' "$DEVICE_JSON"; then
@@ -282,7 +278,7 @@ stop_service() {
     then
       /usr/bin/systemctl stop $SERVICE_FILE > /dev/null &
       show_loader "Stopping $APPNAME service"
-    else  
+    else
       echo_success "\t$SERVICE_FILE not running"
     fi
 }
@@ -296,14 +292,12 @@ copy_project() {
   # Check if an existing installation is present
   echo "Installing $APPNAME to $INSTALL_PATH"
   if [[ -d $INSTALL_PATH ]]; then
-    rm -rf "$INSTALL_PATH" > /dev/null
+    rm -f "$INSTALL_PATH" > /dev/null
     show_loader "\tRemoving existing installation found at $INSTALL_PATH"
   fi
 
-  mkdir -p "$INSTALL_PATH"
-
-  ln -sf "$SRC_PATH" "$INSTALL_PATH/src"
-  show_loader "\tCreating symlink from $SRC_PATH to $INSTALL_PATH/src"
+  ln -sf "$SRC_PATH/.." "$INSTALL_PATH"
+  show_loader "\tCreating symlink from $SRC_PATH/.. to $INSTALL_PATH"
 }
 
 # Get Raspberry Pi hostname
