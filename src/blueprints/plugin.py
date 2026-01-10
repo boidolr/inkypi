@@ -85,7 +85,10 @@ def image(plugin_id, filename):
 
     # Security check to prevent directory traversal
     safe_path = (plugin_dir / filename).resolve()
-    if not safe_path.is_relative_to(plugin_dir.resolve()):
+    plugin_dir_resolved = plugin_dir.resolve()
+    try:
+        safe_path.relative_to(plugin_dir_resolved)
+    except ValueError:
         return "Invalid path", 403
 
     # Check if the directory and file exist

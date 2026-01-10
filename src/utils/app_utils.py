@@ -33,7 +33,7 @@ def resolve_path(file_path):
     src_dir = os.getenv("SRC_DIR")
     if src_dir is None:
         # Default to the src directory
-        src_dir = Path(__file__).resolve().parent.parent
+        src_dir = str(Path(__file__).resolve().parent.parent)
 
     src_path = Path(src_dir)
     return str(src_path / file_path)
