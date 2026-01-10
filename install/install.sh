@@ -38,7 +38,7 @@ SERVICE_FILE_SOURCE="$SCRIPT_DIR/$SERVICE_FILE"
 SERVICE_FILE_TARGET="/etc/systemd/system/$SERVICE_FILE"
 
 APT_REQUIREMENTS_FILE="$SCRIPT_DIR/debian-requirements.txt"
-PIP_REQUIREMENTS_FILE="$SCRIPT_DIR/requirements.txt"
+PY_REQUIREMENTS_FILE="$SCRIPT_DIR/../pyproject.toml"
 
 #
 # Additional requirements for Waveshare support.
@@ -46,7 +46,6 @@ PIP_REQUIREMENTS_FILE="$SCRIPT_DIR/requirements.txt"
 # empty means no WS support required, otherwise we expect the type of display
 # as per the WS naming convention.
 WS_TYPE=""
-WS_REQUIREMENTS_FILE="$SCRIPT_DIR/ws-requirements.txt"
 
 # Parse the arguments, looking for the -W option.
 parse_arguments() {
@@ -209,16 +208,15 @@ create_venv(){
   echo "Creating python virtual environment. "
   python3 -m venv "$VENV_PATH"
   $VENV_PATH/bin/python -m pip install --upgrade pip setuptools wheel > /dev/null
-  $VENV_PATH/bin/python -m pip install -r $PIP_REQUIREMENTS_FILE -qq > /dev/null &
-  show_loader "\tInstalling python dependencies. "
 
-  # do additional dependencies for Waveshare support.
   if [[ -n "$WS_TYPE" ]]; then
-    echo "Adding additional dependencies for waveshare to the python virtual environment. "
-    $VENV_PATH/bin/python -m pip install -r $WS_REQUIREMENTS_FILE > ws_pip_install.log &
-    show_loader "\tInstalling additional Waveshare python dependencies. "
+    echo "Installing with waveshare extras."
+    $VENV_PATH/bin/python -m pip install -e "$PY_REQUIREMENTS_FILE[waveshare]" -qq > /dev/null &
+    show_loader "\tInstalling python dependencies with waveshare support. "
+  else
+    $VENV_PATH/bin/python -m pip install -e "$SCRIPT_DIR/.." -qq > /dev/null &
+    show_loader "\tInstalling python dependencies. "
   fi
-
 }
 
 install_app_service() {

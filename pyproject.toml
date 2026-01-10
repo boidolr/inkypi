@@ -1,0 +1,49 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "inkypi"
+version = "1.0.0"
+description = "InkyPI - A web-based dashboard for e-ink displays on Raspberry Pi"
+requires-python = ">=3.11"
+license = {text = "GPL-3.0"}
+dependencies = [
+    "flask==3.1.2",
+    "python-dotenv==1.2.1",
+    "inky==2.2.1",
+    "requests==2.32.5",
+    "urllib3==2.6.3",
+    "werkzeug==3.1.5",
+    "pillow==12.1.0",
+    "pi-heif==1.1.1",
+    "pytz==2025.2",
+    "openai==2.15.0",
+    "numpy==2.4.1",
+    "icalendar==6.3.2",
+    "recurring-ical-events==3.8.0",
+    "psutil==7.2.1",
+    "cysystemd==2.0.1",
+    "waitress==3.0.2",
+    "feedparser==6.0.12",
+    "astral>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.4.2",
+]
+waveshare = [
+    "gpiozero==2.0.1",
+    # "lgpio==0.2.2.0",
+    "RPi.GPIO==0.7.1",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"

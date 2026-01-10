@@ -20,7 +20,7 @@ BINPATH="/usr/local/bin"
 VENV_PATH="$INSTALL_PATH/venv_$APPNAME"
 
 APT_REQUIREMENTS_FILE="$SCRIPT_DIR/debian-requirements.txt"
-PIP_REQUIREMENTS_FILE="$SCRIPT_DIR/requirements.txt"
+PY_REQUIREMENTS_FILE="$SCRIPT_DIR/../pyproject.toml"
 
 echo_success() {
   echo -e "$1 [\e[32m\xE2\x9C\x94\e[0m]"
@@ -89,7 +89,7 @@ $VENV_PATH/bin/python -m pip install --upgrade pip setuptools wheel > /dev/null 
 # Install or update Python dependencies
 if [ -f "$PIP_REQUIREMENTS_FILE" ]; then
   echo "Updating Python dependencies..."
-  $VENV_PATH/bin/python -m pip install --upgrade -r "$PIP_REQUIREMENTS_FILE" -qq > /dev/null && echo_success "Dependencies updated successfully."
+  $VENV_PATH/bin/python -m pip install --upgrade "$PIP_REQUIREMENTS_FILE" -qq > /dev/null && echo_success "Dependencies updated successfully."
 else
   echo_error "ERROR: Requirements file $PIP_REQUIREMENTS_FILE not found!"
   exit 1
