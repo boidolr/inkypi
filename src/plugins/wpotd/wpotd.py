@@ -29,7 +29,7 @@ import logging
 from random import randint
 from datetime import datetime, timedelta, date
 from functools import lru_cache
-from typing import Dict, Any
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,13 +39,13 @@ class Wpotd(BasePlugin):
     HEADERS = {"User-Agent": "InkyPi/0.0 (https://github.com/fatihak/InkyPi/)"}
     API_URL = "https://en.wikipedia.org/w/api.php"
 
-    def generate_settings_template(self) -> Dict[str, Any]:
+    def generate_settings_template(self) -> dict[str, Any]:
         template_params = super().generate_settings_template()
         template_params["style_settings"] = False
         return template_params
 
     def generate_image(
-        self, settings: Dict[str, Any], device_config: Dict[str, Any]
+        self, settings: dict[str, Any], device_config: dict[str, Any]
     ) -> Image.Image:
         logger.info(f"WPOTD plugin settings: {settings}")
         datetofetch = self._determine_date(settings)
@@ -69,7 +69,7 @@ class Wpotd(BasePlugin):
 
         return image
 
-    def _determine_date(self, settings: Dict[str, Any]) -> date:
+    def _determine_date(self, settings: dict[str, Any]) -> date:
         if settings.get("randomizeWpotd") == "true":
             start = datetime(2015, 1, 1)
             delta_days = (datetime.today() - start).days
@@ -95,7 +95,7 @@ class Wpotd(BasePlugin):
             logger.error(f"Failed to load WPOTD image from {url}: {str(e)}")
             raise RuntimeError("Failed to load WPOTD image.")
 
-    def _fetch_potd(self, cur_date: date) -> Dict[str, Any]:
+    def _fetch_potd(self, cur_date: date) -> dict[str, Any]:
         title = f"Template:POTD/{cur_date.isoformat()}"
         params = {
             "action": "query",
@@ -137,7 +137,7 @@ class Wpotd(BasePlugin):
             logger.error(f"Failed to retrieve image URL for {filename}: {e}")
             raise RuntimeError("Failed to retrieve image URL.")
 
-    def _make_request(self, params: Dict[str, Any]) -> Dict[str, Any]:
+    def _make_request(self, params: dict[str, Any]) -> dict[str, Any]:
         try:
             response = self.SESSION.get(
                 self.API_URL, params=params, headers=self.HEADERS, timeout=10
