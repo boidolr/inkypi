@@ -1,0 +1,48 @@
+name: Tests
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+    branches:
+      - main
+  schedule:
+    - cron: "15 7 */9 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        python-version: ["310", "311", "312", "313", "314"]
+        runner: [ubuntu-latest]
+    runs-on: ${{ matrix.runner }}
+    env:
+      # renovate: datasource=github-releases depName=astral-sh/uv
+      UV_VERSION: "0.9.22"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-suffix: py-${{ matrix.python-version }}
+          version: ${{ env.UV_VERSION }}
+
+      - name: Install Python ${{ matrix.python-version }}
+        run: uv python install ${{ matrix.python-version }}
+
+      - name: Create venv
+        run: uv venv -p ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: uv pip install -r install/requirements.txt -r install/requirements-dev.txt
+
+      - name: Execute tests
+        run: uv run pytest
