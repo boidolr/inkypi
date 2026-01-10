@@ -5,6 +5,7 @@ import logging
 import psutil
 import pytz
 from datetime import datetime, timezone
+from pathlib import Path
 from plugins.plugin_registry import get_plugin_instance
 from utils.image_utils import compute_image_hash
 from model import RefreshInfo, PlaylistManager
@@ -303,9 +304,7 @@ class PlaylistRefresh(RefreshAction):
     def execute(self, plugin, device_config, current_dt: datetime):
         """Performs a refresh for the specified plugin instance within its playlist context."""
         # Determine the file path for the plugin's image
-        plugin_image_path = os.path.join(
-            device_config.plugin_image_dir, self.plugin_instance.get_image_path()
-        )
+        plugin_image_path = Path(device_config.plugin_image_dir) / self.plugin_instance.get_image_path()
 
         # Check if a refresh is needed based on the plugin instance's criteria
         if self.plugin_instance.should_refresh(current_dt) or self.force:
@@ -314,7 +313,7 @@ class PlaylistRefresh(RefreshAction):
             )
             # Generate a new image
             image = plugin.generate_image(self.plugin_instance.settings, device_config)
-            image.save(plugin_image_path)
+            image.save(str(plugin_image_path))
             self.plugin_instance.latest_refresh_time = current_dt.isoformat()
         else:
             logger.info(

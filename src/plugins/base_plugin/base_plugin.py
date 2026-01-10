@@ -1,9 +1,9 @@
 import logging
 import os
+from pathlib import Path
 from utils.app_utils import resolve_path, get_fonts
 from utils.image_utils import take_screenshot_html
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from pathlib import Path
 import asyncio
 import base64
 
@@ -11,8 +11,8 @@ logger = logging.getLogger(__name__)
 
 STATIC_DIR = resolve_path("static")
 PLUGINS_DIR = resolve_path("plugins")
-BASE_PLUGIN_DIR = os.path.join(PLUGINS_DIR, "base_plugin")
-BASE_PLUGIN_RENDER_DIR = os.path.join(BASE_PLUGIN_DIR, "render")
+BASE_PLUGIN_DIR = str(Path(PLUGINS_DIR) / "base_plugin")
+BASE_PLUGIN_RENDER_DIR = str(Path(BASE_PLUGIN_DIR) / "render")
 
 FRAME_STYLES = [
     {"name": "None", "icon": "frames/blank.png"},
@@ -29,7 +29,7 @@ class BasePlugin:
         self.config = config
 
         self.render_dir = self.get_plugin_dir("render")
-        if os.path.exists(self.render_dir):
+        if Path(self.render_dir).exists():
             # instantiate jinja2 env with base plugin and current plugin render directories
             loader = FileSystemLoader([self.render_dir, BASE_PLUGIN_RENDER_DIR])
             self.env = Environment(loader=loader, autoescape=select_autoescape(["html", "xml"]))
@@ -52,10 +52,10 @@ class BasePlugin:
         return self.config.get("id")
 
     def get_plugin_dir(self, path=None):
-        plugin_dir = os.path.join(PLUGINS_DIR, self.get_plugin_id())
+        plugin_dir = Path(PLUGINS_DIR) / self.get_plugin_id()
         if path:
-            plugin_dir = os.path.join(plugin_dir, path)
-        return plugin_dir
+            plugin_dir = plugin_dir / path
+        return str(plugin_dir)
 
     def generate_settings_template(self):
         template_params = {"settings_template": "base_plugin/settings.html"}
@@ -69,9 +69,9 @@ class BasePlugin:
 
     def render_image(self, dimensions, html_file, css_file=None, template_params={}):
         # load the base plugin and current plugin css files
-        css_files = [os.path.join(BASE_PLUGIN_RENDER_DIR, "plugin.css")]
+        css_files = [str(Path(BASE_PLUGIN_RENDER_DIR) / "plugin.css")]
         if css_file:
-            plugin_css = os.path.join(self.render_dir, css_file)
+            plugin_css = str(Path(self.render_dir) / css_file)
             css_files.append(plugin_css)
 
         template_params["style_sheets"] = css_files

@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+from pathlib import Path
 from dotenv import load_dotenv
 from model import PlaylistManager, RefreshInfo
 
@@ -9,16 +10,16 @@ logger = logging.getLogger(__name__)
 
 class Config:
     # Base path for the project directory
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = Path(__file__).resolve().parent
 
     # File paths relative to the script's directory
-    config_file = os.path.join(BASE_DIR, "config", "device.json")
+    config_file = str(BASE_DIR / "config" / "device.json")
 
     # File path for storing the current image being displayed
-    current_image_file = os.path.join(BASE_DIR, "static", "images", "current_image.png")
+    current_image_file = str(BASE_DIR / "static" / "images" / "current_image.png")
 
     # Directory path for storing plugin instance images
-    plugin_image_dir = os.path.join(BASE_DIR, "static", "images", "plugins")
+    plugin_image_dir = str(BASE_DIR / "static" / "images" / "plugins")
 
     def __init__(self):
         self.config = self.read_config()
@@ -40,12 +41,12 @@ class Config:
         """Reads the plugin-info.json config JSON from each plugin folder. Excludes the base plugin."""
         # Iterate over all plugin folders
         plugins_list = []
-        for plugin in sorted(os.listdir(os.path.join(self.BASE_DIR, "plugins"))):
-            plugin_path = os.path.join(self.BASE_DIR, "plugins", plugin)
-            if os.path.isdir(plugin_path) and plugin != "__pycache__":
+        plugins_dir = self.BASE_DIR / "plugins"
+        for plugin_path in sorted(plugins_dir.iterdir()):
+            if plugin_path.is_dir() and plugin_path.name != "__pycache__":
                 # Check if the plugin-info.json file exists
-                plugin_info_file = os.path.join(plugin_path, "plugin-info.json")
-                if os.path.isfile(plugin_info_file):
+                plugin_info_file = plugin_path / "plugin-info.json"
+                if plugin_info_file.is_file():
                     logger.debug(f"Reading plugin info from {plugin_info_file}")
                     with open(plugin_info_file) as f:
                         plugin_info = json.load(f)

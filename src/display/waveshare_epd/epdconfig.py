@@ -32,6 +32,7 @@ import logging
 import sys
 import time
 import subprocess
+from pathlib import Path
 
 from ctypes import *
 
@@ -116,7 +117,7 @@ class RaspberryPi:
 
         if cleanup:
             find_dirs = [
-                os.path.dirname(os.path.realpath(__file__)),
+                str(Path(__file__).resolve().parent),
                 "/usr/local/lib",
                 "/usr/lib",
             ]
@@ -125,10 +126,10 @@ class RaspberryPi:
                 val = int(os.popen("getconf LONG_BIT").read())
                 logging.debug("System is %d bit" % val)
                 if val == 64:
-                    so_filename = os.path.join(find_dir, "DEV_Config_64.so")
+                    so_filename = str(Path(find_dir) / "DEV_Config_64.so")
                 else:
-                    so_filename = os.path.join(find_dir, "DEV_Config_32.so")
-                if os.path.exists(so_filename):
+                    so_filename = str(Path(find_dir) / "DEV_Config_32.so")
+                if Path(so_filename).exists():
                     self.DEV_SPI = CDLL(so_filename)
                     break
             if self.DEV_SPI is None:
@@ -172,14 +173,14 @@ class JetsonNano:
         import ctypes
 
         find_dirs = [
-            os.path.dirname(os.path.realpath(__file__)),
+            str(Path(__file__).resolve().parent),
             "/usr/local/lib",
             "/usr/lib",
         ]
         self.SPI = None
         for find_dir in find_dirs:
-            so_filename = os.path.join(find_dir, "sysfs_software_spi.so")
-            if os.path.exists(so_filename):
+            so_filename = str(Path(find_dir) / "sysfs_software_spi.so")
+            if Path(so_filename).exists():
                 self.SPI = ctypes.cdll.LoadLibrary(so_filename)
                 break
         if self.SPI is None:

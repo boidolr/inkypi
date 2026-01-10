@@ -2,10 +2,11 @@
 
 # set up logging
 import os, logging.config
+from pathlib import Path
 
 from pi_heif import register_heif_opener
 
-logging.config.fileConfig(os.path.join(os.path.dirname(__file__), "config", "logging.conf"))
+logging.config.fileConfig(Path(__file__).parent / "config" / "logging.conf")
 
 # suppress warning from inky library https://github.com/pimoroni/inky/issues/205
 import warnings
@@ -44,7 +45,7 @@ args = parser.parse_args()
 
 # Set development mode settings
 if args.dev:
-    Config.config_file = os.path.join(Config.BASE_DIR, "config", "device_dev.json")
+    Config.config_file = str(Path(Config.BASE_DIR) / "config" / "device_dev.json")
     DEV_MODE = True
     PORT = 8080
     logger.info("Starting InkyPi in DEVELOPMENT mode on port 8080")
@@ -55,8 +56,8 @@ else:
 logging.getLogger("waitress.queue").setLevel(logging.ERROR)
 app = Flask(__name__)
 template_dirs = [
-    os.path.join(os.path.dirname(__file__), "templates"),  # Default template folder
-    os.path.join(os.path.dirname(__file__), "plugins"),  # Plugin templates
+    str(Path(__file__).parent / "templates"),  # Default template folder
+    str(Path(__file__).parent / "plugins"),  # Plugin templates
 ]
 app.jinja_loader = ChoiceLoader([FileSystemLoader(directory) for directory in template_dirs])
 

@@ -3,6 +3,7 @@ from PIL import Image, ImageOps, ImageColor
 import logging
 import os
 import random
+from pathlib import Path
 
 from utils.image_utils import pad_image_blur
 
@@ -26,7 +27,7 @@ def list_files_in_folder(folder_path):
     for root, dirs, files in os.walk(folder_path):
         for f in files:
             if f.lower().endswith(image_extensions) and not f.startswith("."):
-                image_files.append(os.path.join(root, f))
+                image_files.append(str(Path(root) / f))
 
     return image_files
 
@@ -37,10 +38,11 @@ class ImageFolder(BasePlugin):
         if not folder_path:
             raise RuntimeError("Folder path is required.")
 
-        if not os.path.exists(folder_path):
+        folder = Path(folder_path)
+        if not folder.exists():
             raise RuntimeError(f"Folder does not exist: {folder_path}")
 
-        if not os.path.isdir(folder_path):
+        if not folder.is_dir():
             raise RuntimeError(f"Path is not a directory: {folder_path}")
 
         dimensions = device_config.get_resolution()

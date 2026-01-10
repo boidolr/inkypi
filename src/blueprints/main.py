@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app, render_template, send_file
 import os
 from datetime import datetime
+from pathlib import Path
 
 main_bp = Blueprint("main", __name__)
 
@@ -18,18 +19,13 @@ def main_page():
 @main_bp.route("/api/current_image")
 def get_current_image():
     """Serve current_image.png with conditional request support (If-Modified-Since)."""
-    image_path = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)),
-        "static",
-        "images",
-        "current_image.png",
-    )
+    image_path = Path(__file__).resolve().parent.parent / "static" / "images" / "current_image.png"
 
-    if not os.path.exists(image_path):
+    if not image_path.exists():
         return jsonify({"error": "Image not found"}), 404
 
     # Get the file's last modified time (truncate to seconds to match HTTP header precision)
-    file_mtime = int(os.path.getmtime(image_path))
+    file_mtime = int(image_path.stat().st_mtime)
     last_modified = datetime.fromtimestamp(file_mtime)
 
     # Check If-Modified-Since header
@@ -47,7 +43,7 @@ def get_current_image():
             pass
 
     # Send the file with Last-Modified header
-    response = send_file(image_path, mimetype="image/png")
+    response = send_file(str(image_path), mimetype="image/png")
     response.headers["Last-Modified"] = last_modified.strftime("%a, %d %b %Y %H:%M:%S GMT")
     response.headers["Cache-Control"] = "no-cache"
     return response

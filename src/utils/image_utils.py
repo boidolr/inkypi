@@ -6,6 +6,7 @@ import logging
 import hashlib
 import tempfile
 import subprocess
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -105,7 +106,7 @@ def take_screenshot_html(html_str, dimensions, timeout_ms=None):
         image = take_screenshot(html_file_path, dimensions, timeout_ms)
 
         # Remove html file
-        os.remove(html_file_path)
+        Path(html_file_path).unlink()
 
     except Exception as e:
         logger.error(f"Failed to take screenshot: {str(e)}")
@@ -144,17 +145,18 @@ def take_screenshot(target, dimensions, timeout_ms=None):
         result = subprocess.run(command, capture_output=True)
 
         # Check if the process failed or the output file is missing
-        if result.returncode != 0 or not os.path.exists(img_file_path):
+        img_path = Path(img_file_path)
+        if result.returncode != 0 or not img_path.exists():
             logger.error("Failed to take screenshot:")
             logger.error(result.stderr.decode("utf-8"))
             return None
 
         # Load the image using PIL
-        with Image.open(img_file_path) as img:
+        with Image.open(img_path) as img:
             image = img.copy()
 
         # Remove image files
-        os.remove(img_file_path)
+        img_path.unlink()
 
     except Exception as e:
         logger.error(f"Failed to take screenshot: {str(e)}")
