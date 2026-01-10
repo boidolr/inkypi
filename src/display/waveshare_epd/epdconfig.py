@@ -115,6 +115,7 @@ class RaspberryPi:
         self.GPIO_PWR_PIN.on()
 
         if cleanup:
+            import os
             find_dirs = [
                 Path(__file__).resolve().parent,
                 Path("/usr/local/lib"),
@@ -122,7 +123,6 @@ class RaspberryPi:
             ]
             self.DEV_SPI = None
             for find_dir in find_dirs:
-                import os
                 val = int(os.popen("getconf LONG_BIT").read())
                 logging.debug("System is %d bit" % val)
                 if val == 64:
