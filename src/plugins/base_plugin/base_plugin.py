@@ -1,5 +1,4 @@
 import logging
-import os
 from pathlib import Path
 from utils.app_utils import resolve_path, get_fonts
 from utils.image_utils import take_screenshot_html

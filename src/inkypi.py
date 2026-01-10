@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 # set up logging
-import os, logging.config
+import logging.config
 from pathlib import Path
 
 from pi_heif import register_heif_opener
@@ -13,7 +13,6 @@ import warnings
 
 warnings.filterwarnings("ignore", message=".*Busy Wait: Held high.*")
 
-import os
 import random
 import time
 import sys

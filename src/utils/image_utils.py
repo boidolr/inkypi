@@ -1,7 +1,6 @@
 import requests
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 from io import BytesIO
-import os
 import logging
 import hashlib
 import tempfile

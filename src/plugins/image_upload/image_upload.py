@@ -2,7 +2,6 @@ from plugins.base_plugin.base_plugin import BasePlugin
 from PIL import Image, ImageOps, ImageColor
 import logging
 import random
-import os
 from pathlib import Path
 
 from utils.image_utils import pad_image_blur

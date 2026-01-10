@@ -10,7 +10,6 @@ from plugins.plugin_registry import get_plugin_instance
 from utils.app_utils import resolve_path, handle_request_files, parse_form
 from refresh_task import ManualRefresh, PlaylistRefresh
 import json
-import os
 import logging
 from pathlib import Path
 
