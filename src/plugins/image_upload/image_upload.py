@@ -21,7 +21,6 @@ class ImageUpload(BasePlugin):
             raise RuntimeError("Failed to read image file.")
         return image
 
-
     def generate_image(self, settings, device_config) -> Image:
         # Get the current index from the device json
         img_index = settings.get("image_index", 0)
@@ -31,7 +30,7 @@ class ImageUpload(BasePlugin):
             # Prevent Index out of range issues when file list has changed
             img_index = 0
 
-        if settings.get('randomize') == "true":
+        if settings.get("randomize") == "true":
             img_index = random.randrange(0, len(image_locations))
             image = self.open_image(img_index, image_locations)
         else:
@@ -39,19 +38,26 @@ class ImageUpload(BasePlugin):
             img_index = (img_index + 1) % len(image_locations)
 
         # Write the new index back ot the device json
-        settings['image_index'] = img_index
+        settings["image_index"] = img_index
         orientation = device_config.get_config("orientation")
 
-        if settings.get('padImage') == "true":
+        if settings.get("padImage") == "true":
             dimensions = device_config.get_resolution()
             if orientation == "vertical":
                 dimensions = dimensions[::-1]
 
-            if settings.get('backgroundOption') == "blur":
+            if settings.get("backgroundOption") == "blur":
                 return pad_image_blur(image, dimensions)
             else:
-                background_color = ImageColor.getcolor(settings.get('backgroundColor') or (255, 255, 255), "RGB")
-                return ImageOps.pad(image, dimensions, color=background_color, method=Image.Resampling.LANCZOS)
+                background_color = ImageColor.getcolor(
+                    settings.get("backgroundColor") or (255, 255, 255), "RGB"
+                )
+                return ImageOps.pad(
+                    image,
+                    dimensions,
+                    color=background_color,
+                    method=Image.Resampling.LANCZOS,
+                )
         return image
 
     def cleanup(self, settings):

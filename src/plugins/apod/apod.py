@@ -15,15 +15,16 @@ from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
+
 class Apod(BasePlugin):
     def generate_settings_template(self):
         template_params = super().generate_settings_template()
-        template_params['api_key'] = {
+        template_params["api_key"] = {
             "required": True,
             "service": "NASA",
-            "expected_key": "NASA_SECRET"
+            "expected_key": "NASA_SECRET",
         }
-        template_params['style_settings'] = False
+        template_params["style_settings"] = False
         return template_params
 
     def generate_image(self, settings, device_config):
