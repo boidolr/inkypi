@@ -309,7 +309,7 @@ output, _ = process.communicate()
 
 if "Raspberry" in output:
     implementation = RaspberryPi()
-elif os.path.exists("/sys/bus/platform/drivers/gpio-x3"):
+elif Path("/sys/bus/platform/drivers/gpio-x3").exists():
     implementation = SunriseX3()
 else:
     implementation = JetsonNano()
