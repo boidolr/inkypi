@@ -10,7 +10,7 @@ openai==2.15.0
 numpy==2.2.1
 icalendar==6.3.1
 recurring-ical-events==3.8.0
-psutil==7.0.0
+psutil==7.2.1
 feedparser==6.0.12
 waitress==3.0.2
 astral>=3.1
