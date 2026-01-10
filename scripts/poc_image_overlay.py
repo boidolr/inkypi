@@ -23,6 +23,26 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
 
+def load_font_with_fallback(size):
+    """Load a font with fallback options for cross-platform compatibility."""
+    font_paths = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",  # Linux (Debian/Ubuntu)
+        "/System/Library/Fonts/Helvetica.ttc",  # macOS
+        "C:\\Windows\\Fonts\\arial.ttf",  # Windows
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",  # Linux (alternative)
+    ]
+    
+    for font_path in font_paths:
+        if os.path.exists(font_path):
+            try:
+                return ImageFont.truetype(font_path, size)
+            except Exception:
+                continue
+    
+    # Fallback to default font
+    return ImageFont.load_default()
+
+
 def create_sample_base_image(size=(1000, 600), color='#87CEEB'):
     """Create a sample base image (simulating a gallery image)."""
     img = Image.new('RGB', size, ImageColor.getcolor(color, 'RGB'))
@@ -35,10 +55,7 @@ def create_sample_base_image(size=(1000, 600), color='#87CEEB'):
         draw.line([(0, i), (size[0], i)], fill='#ffffff', width=2)
     
     # Add text to indicate this is the base
-    try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 48)
-    except:
-        font = ImageFont.load_default()
+    font = load_font_with_fallback(48)
     
     text = "BASE IMAGE"
     bbox = draw.textbbox((0, 0), text, font=font)
@@ -63,10 +80,7 @@ def create_sample_overlay(size=(400, 300), color='#2E8B57', label='OVERLAY'):
     draw.rectangle([(0, 0), (size[0]-1, size[1]-1)], outline='#ffffff', width=5)
     
     # Add label
-    try:
-        font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
-    except:
-        font = ImageFont.load_default()
+    font = load_font_with_fallback(36)
     
     bbox = draw.textbbox((0, 0), label, font=font)
     text_width = bbox[2] - bbox[0]
