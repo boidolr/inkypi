@@ -27,11 +27,11 @@
 # THE SOFTWARE.
 #
 
-import os
 import logging
 import sys
 import time
 import subprocess
+from pathlib import Path
 
 from ctypes import *
 
@@ -116,20 +116,21 @@ class RaspberryPi:
 
         if cleanup:
             find_dirs = [
-                os.path.dirname(os.path.realpath(__file__)),
-                "/usr/local/lib",
-                "/usr/lib",
+                Path(__file__).resolve().parent,
+                Path("/usr/local/lib"),
+                Path("/usr/lib"),
             ]
             self.DEV_SPI = None
             for find_dir in find_dirs:
+                import os
                 val = int(os.popen("getconf LONG_BIT").read())
                 logging.debug("System is %d bit" % val)
                 if val == 64:
-                    so_filename = os.path.join(find_dir, "DEV_Config_64.so")
+                    so_filename = find_dir / "DEV_Config_64.so"
                 else:
-                    so_filename = os.path.join(find_dir, "DEV_Config_32.so")
-                if os.path.exists(so_filename):
-                    self.DEV_SPI = CDLL(so_filename)
+                    so_filename = find_dir / "DEV_Config_32.so"
+                if so_filename.exists():
+                    self.DEV_SPI = CDLL(str(so_filename))
                     break
             if self.DEV_SPI is None:
                 RuntimeError("Cannot find DEV_Config.so")
@@ -172,15 +173,15 @@ class JetsonNano:
         import ctypes
 
         find_dirs = [
-            os.path.dirname(os.path.realpath(__file__)),
-            "/usr/local/lib",
-            "/usr/lib",
+            Path(__file__).resolve().parent,
+            Path("/usr/local/lib"),
+            Path("/usr/lib"),
         ]
         self.SPI = None
         for find_dir in find_dirs:
-            so_filename = os.path.join(find_dir, "sysfs_software_spi.so")
-            if os.path.exists(so_filename):
-                self.SPI = ctypes.cdll.LoadLibrary(so_filename)
+            so_filename = find_dir / "sysfs_software_spi.so"
+            if so_filename.exists():
+                self.SPI = ctypes.cdll.LoadLibrary(str(so_filename))
                 break
         if self.SPI is None:
             raise RuntimeError("Cannot find sysfs_software_spi.so")
@@ -308,7 +309,7 @@ output, _ = process.communicate()
 
 if "Raspberry" in output:
     implementation = RaspberryPi()
-elif os.path.exists("/sys/bus/platform/drivers/gpio-x3"):
+elif Path("/sys/bus/platform/drivers/gpio-x3").exists():
     implementation = SunriseX3()
 else:
     implementation = JetsonNano()
