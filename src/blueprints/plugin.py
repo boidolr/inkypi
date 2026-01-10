@@ -6,11 +6,11 @@ from flask import (
     render_template,
     send_from_directory,
 )
+from pathlib import Path
 from plugins.plugin_registry import get_plugin_instance
 from utils.app_utils import resolve_path, handle_request_files, parse_form
 from refresh_task import ManualRefresh, PlaylistRefresh
 import json
-import os
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,12 +20,10 @@ plugin_bp = Blueprint("plugin", __name__)
 def _delete_plugin_instance_images(device_config, plugin_instance_obj):
     """Delete all images associated with a plugin instance."""
     # Delete the plugin instance's generated image
-    plugin_image_path = os.path.join(
-        device_config.plugin_image_dir, plugin_instance_obj.get_image_path()
-    )
-    if os.path.exists(plugin_image_path):
+    plugin_image_path = Path(device_config.plugin_image_dir) / plugin_instance_obj.get_image_path()
+    if plugin_image_path.exists():
         try:
-            os.remove(plugin_image_path)
+            plugin_image_path.unlink()
             logger.info(f"Deleted plugin instance image: {plugin_image_path}")
         except Exception as e:
             logger.warning(f"Failed to delete plugin instance image {plugin_image_path}: {e}")
@@ -80,30 +78,27 @@ def plugin_page(plugin_id):
 @plugin_bp.route("/images/<plugin_id>/<path:filename>")
 def image(plugin_id, filename):
     # Resolve plugins directory dynamically
-    plugins_dir = resolve_path("plugins")
+    plugins_dir = Path(resolve_path("plugins"))
 
     # Construct the full path to the plugin's file
-    plugin_dir = os.path.join(plugins_dir, plugin_id)
+    plugin_dir = plugins_dir / plugin_id
 
     # Security check to prevent directory traversal
-    safe_path = os.path.abspath(os.path.join(plugin_dir, filename))
-    if not safe_path.startswith(os.path.abspath(plugin_dir)):
+    safe_path = (plugin_dir / filename).resolve()
+    if not safe_path.is_relative_to(plugin_dir.resolve()):
         return "Invalid path", 403
 
-    # Convert to absolute path for send_from_directory
-    abs_plugin_dir = os.path.abspath(plugin_dir)
-
     # Check if the directory and file exist
-    if not os.path.isdir(abs_plugin_dir):
-        logger.error(f"Plugin directory not found: {abs_plugin_dir}")
+    if not plugin_dir.is_dir():
+        logger.error(f"Plugin directory not found: {plugin_dir}")
         return "Plugin directory not found", 404
 
-    if not os.path.isfile(safe_path):
+    if not safe_path.is_file():
         logger.error(f"File not found: {safe_path}")
         return "File not found", 404
 
     # Serve the file from the plugin directory
-    return send_from_directory(abs_plugin_dir, filename)
+    return send_from_directory(str(plugin_dir), filename)
 
 
 @plugin_bp.route(
@@ -125,15 +120,15 @@ def plugin_instance_image(playlist_name, plugin_id, instance_name):
 
     # Get the image path
     image_filename = plugin_instance.get_image_path()
-    image_path = os.path.join(device_config.plugin_image_dir, image_filename)
+    image_path = Path(device_config.plugin_image_dir) / image_filename
 
     # Check if the image exists
-    if not os.path.exists(image_path):
+    if not image_path.exists():
         # Return a placeholder or 404
         return "Image not yet generated", 404
 
     # Serve the image
-    return send_from_directory(device_config.plugin_image_dir, image_filename)
+    return send_from_directory(str(device_config.plugin_image_dir), image_filename)
 
 
 @plugin_bp.route("/delete_plugin_instance", methods=["POST"])
