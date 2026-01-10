@@ -1,6 +1,6 @@
-import os
 import json
 import logging
+from pathlib import Path
 from dotenv import load_dotenv
 from model import PlaylistManager, RefreshInfo
 
@@ -9,16 +9,16 @@ logger = logging.getLogger(__name__)
 
 class Config:
     # Base path for the project directory
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    BASE_DIR = Path(__file__).resolve().parent
 
     # File paths relative to the script's directory
-    config_file = os.path.join(BASE_DIR, "config", "device.json")
+    config_file = BASE_DIR / "config" / "device.json"
 
     # File path for storing the current image being displayed
-    current_image_file = os.path.join(BASE_DIR, "static", "images", "current_image.png")
+    current_image_file = BASE_DIR / "static" / "images" / "current_image.png"
 
     # Directory path for storing plugin instance images
-    plugin_image_dir = os.path.join(BASE_DIR, "static", "images", "plugins")
+    plugin_image_dir = BASE_DIR / "static" / "images" / "plugins"
 
     def __init__(self):
         self.config = self.read_config()
@@ -29,7 +29,7 @@ class Config:
     def read_config(self):
         """Reads the device config JSON file and returns it as a dictionary."""
         logger.debug(f"Reading device config from {self.config_file}")
-        with open(self.config_file) as f:
+        with self.config_file.open() as f:
             config = json.load(f)
 
         logger.debug("Loaded config:\n%s", json.dumps(config, indent=3))
@@ -40,14 +40,14 @@ class Config:
         """Reads the plugin-info.json config JSON from each plugin folder. Excludes the base plugin."""
         # Iterate over all plugin folders
         plugins_list = []
-        for plugin in sorted(os.listdir(os.path.join(self.BASE_DIR, "plugins"))):
-            plugin_path = os.path.join(self.BASE_DIR, "plugins", plugin)
-            if os.path.isdir(plugin_path) and plugin != "__pycache__":
+        plugins_dir = self.BASE_DIR / "plugins"
+        for plugin_path in sorted(plugins_dir.iterdir()):
+            if plugin_path.is_dir() and plugin_path.name != "__pycache__":
                 # Check if the plugin-info.json file exists
-                plugin_info_file = os.path.join(plugin_path, "plugin-info.json")
-                if os.path.isfile(plugin_info_file):
+                plugin_info_file = plugin_path / "plugin-info.json"
+                if plugin_info_file.is_file():
                     logger.debug(f"Reading plugin info from {plugin_info_file}")
-                    with open(plugin_info_file) as f:
+                    with plugin_info_file.open() as f:
                         plugin_info = json.load(f)
                     plugins_list.append(plugin_info)
 
@@ -58,7 +58,7 @@ class Config:
         logger.debug(f"Writing device config to {self.config_file}")
         self.update_value("playlist_config", self.playlist_manager.to_dict())
         self.update_value("refresh_info", self.refresh_info.to_dict())
-        with open(self.config_file, "w") as outfile:
+        with self.config_file.open("w") as outfile:
             json.dump(self.config, outfile, indent=4)
 
     def get_config(self, key=None, default={}):
@@ -95,6 +95,7 @@ class Config:
     def load_env_key(self, key):
         """Loads an environment variable using dotenv and returns its value."""
         load_dotenv(override=True)
+        import os
         return os.getenv(key)
 
     def load_playlist_manager(self):

@@ -1,7 +1,7 @@
 import requests
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
 from io import BytesIO
-import os
+from pathlib import Path
 import logging
 import hashlib
 import tempfile
@@ -144,7 +144,7 @@ def take_screenshot(target, dimensions, timeout_ms=None):
         result = subprocess.run(command, capture_output=True)
 
         # Check if the process failed or the output file is missing
-        if result.returncode != 0 or not os.path.exists(img_file_path):
+        if result.returncode != 0 or not Path(img_file_path).exists():
             logger.error("Failed to take screenshot:")
             logger.error(result.stderr.decode("utf-8"))
             return None

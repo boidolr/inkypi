@@ -18,7 +18,7 @@ FONT_FAMILIES = {
         {"font-weight": "bold", "file": "Jost-SemiBold.ttf"},
     ],
     "Napoli": [{"font-weight": "normal", "file": "Napoli.ttf"}],
-    "DS-Digital": [{"font-weight": "normal", "file": os.path.join("DS-DIGI", "DS-DIGI.TTF")}],
+    "DS-Digital": [{"font-weight": "normal", "file": str(Path("DS-DIGI") / "DS-DIGI.TTF")}],
 }
 
 FONTS = {
@@ -33,7 +33,7 @@ def resolve_path(file_path):
     src_dir = os.getenv("SRC_DIR")
     if src_dir is None:
         # Default to the src directory
-        src_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        src_dir = str(Path(__file__).resolve().parent.parent)
 
     src_path = Path(src_dir)
     return str(src_path / file_path)
@@ -76,7 +76,7 @@ def get_font(font_name, font_size=50, font_weight="normal"):
             font_entry = font_variants[0]  # Default to first available variant
 
         if font_entry:
-            font_path = resolve_path(os.path.join("static", "fonts", font_entry["file"]))
+            font_path = resolve_path(str(Path("static") / "fonts" / font_entry["file"]))
             return ImageFont.truetype(font_path, font_size)
         else:
             logger.warn(
@@ -95,7 +95,7 @@ def get_fonts():
             fonts_list.append(
                 {
                     "font_family": font_family,
-                    "url": resolve_path(os.path.join("static", "fonts", variant["file"])),
+                    "url": resolve_path(str(Path("static") / "fonts" / variant["file"])),
                     "font_weight": variant.get("font-weight", "normal"),
                     "font_style": variant.get("font-style", "normal"),
                 }
@@ -104,7 +104,7 @@ def get_fonts():
 
 
 def get_font_path(font_name):
-    return resolve_path(os.path.join("static", "fonts", FONTS[font_name]))
+    return resolve_path(str(Path("static") / "fonts" / FONTS[font_name]))
 
 
 def generate_startup_image(dimensions=(800, 480)):
@@ -189,14 +189,15 @@ def handle_request_files(request_files, form_data={}):
         if not file_name:
             continue
 
-        extension = os.path.splitext(file_name)[1].replace(".", "")
+        file_path_obj = Path(file_name)
+        extension = file_path_obj.suffix.replace(".", "")
         if not extension or extension.lower() not in allowed_file_extensions:
             continue
 
-        file_name = os.path.basename(file_name)
+        file_name = file_path_obj.name
 
-        file_save_dir = resolve_path(os.path.join("static", "images", "saved"))
-        file_path = os.path.join(file_save_dir, file_name)
+        file_save_dir = resolve_path(str(Path("static") / "images" / "saved"))
+        file_path = str(Path(file_save_dir) / file_name)
 
         # Open the image and apply EXIF transformation before saving
         if extension in {"jpg", "jpeg"}:
