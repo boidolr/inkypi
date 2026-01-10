@@ -1,8 +1,8 @@
 from plugins.base_plugin.base_plugin import BasePlugin
+from pathlib import Path
 from PIL import Image, ImageOps, ImageColor
 import logging
 import random
-import os
 
 from utils.image_utils import pad_image_blur
 
@@ -67,9 +67,10 @@ class ImageUpload(BasePlugin):
             return
 
         for image_path in image_locations:
-            if os.path.exists(image_path):
+            image_file = Path(image_path)
+            if image_file.exists():
                 try:
-                    os.remove(image_path)
+                    image_file.unlink()
                     logger.info(f"Deleted uploaded image: {image_path}")
                 except Exception as e:
                     logger.warning(f"Failed to delete uploaded image {image_path}: {e}")

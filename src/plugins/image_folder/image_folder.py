@@ -1,7 +1,7 @@
 from plugins.base_plugin.base_plugin import BasePlugin
+from pathlib import Path
 from PIL import Image, ImageOps, ImageColor
 import logging
-import os
 import random
 
 from utils.image_utils import pad_image_blur
@@ -23,10 +23,10 @@ def list_files_in_folder(folder_path):
         ".heic",
     )
     image_files = []
-    for root, dirs, files in os.walk(folder_path):
-        for f in files:
-            if f.lower().endswith(image_extensions) and not f.startswith("."):
-                image_files.append(os.path.join(root, f))
+    folder = Path(folder_path)
+    for file_path in folder.rglob("*"):
+        if file_path.is_file() and file_path.suffix.lower() in image_extensions and not file_path.name.startswith("."):
+            image_files.append(str(file_path))
 
     return image_files
 
@@ -37,10 +37,11 @@ class ImageFolder(BasePlugin):
         if not folder_path:
             raise RuntimeError("Folder path is required.")
 
-        if not os.path.exists(folder_path):
+        folder = Path(folder_path)
+        if not folder.exists():
             raise RuntimeError(f"Folder does not exist: {folder_path}")
 
-        if not os.path.isdir(folder_path):
+        if not folder.is_dir():
             raise RuntimeError(f"Path is not a directory: {folder_path}")
 
         dimensions = device_config.get_resolution()
