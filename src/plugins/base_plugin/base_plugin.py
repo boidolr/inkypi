@@ -10,8 +10,8 @@ logger = logging.getLogger(__name__)
 
 STATIC_DIR = resolve_path("static")
 PLUGINS_DIR = resolve_path("plugins")
-BASE_PLUGIN_DIR = str(Path(PLUGINS_DIR) / "base_plugin")
-BASE_PLUGIN_RENDER_DIR = str(Path(BASE_PLUGIN_DIR) / "render")
+BASE_PLUGIN_DIR = Path(PLUGINS_DIR) / "base_plugin"
+BASE_PLUGIN_RENDER_DIR = BASE_PLUGIN_DIR / "render"
 
 FRAME_STYLES = [
     {"name": "None", "icon": "frames/blank.png"},
@@ -68,7 +68,7 @@ class BasePlugin:
 
     def render_image(self, dimensions, html_file, css_file=None, template_params={}):
         # load the base plugin and current plugin css files
-        css_files = [str(Path(BASE_PLUGIN_RENDER_DIR) / "plugin.css")]
+        css_files = [str(BASE_PLUGIN_RENDER_DIR / "plugin.css")]
         if css_file:
             plugin_css = str(Path(self.render_dir) / css_file)
             css_files.append(plugin_css)

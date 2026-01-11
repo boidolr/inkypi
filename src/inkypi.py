@@ -59,7 +59,7 @@ template_dirs = [
     src_dir / "templates",  # Default template folder
     src_dir / "plugins",  # Plugin templates
 ]
-app.jinja_loader = ChoiceLoader([FileSystemLoader(str(directory)) for directory in template_dirs])
+app.jinja_loader = ChoiceLoader([FileSystemLoader(directory) for directory in template_dirs])
 
 device_config = Config()
 display_manager = DisplayManager(device_config)

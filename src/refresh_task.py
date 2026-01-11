@@ -1,7 +1,6 @@
 import threading
 import time
 import logging
-import psutil
 import pytz
 from pathlib import Path
 from datetime import datetime, timezone
@@ -219,6 +218,7 @@ class RefreshTask:
 
     def log_system_stats(self):
         import os
+        import psutil
         metrics = {
             "cpu_percent": psutil.cpu_percent(interval=1),
             "memory_percent": psutil.virtual_memory().percent,
