@@ -1,6 +1,6 @@
 import logging
-import os
 import random
+from pathlib import Path
 
 from PIL import Image
 from PIL import ImageColor
@@ -26,10 +26,10 @@ def list_files_in_folder(folder_path):
         ".heic",
     )
     image_files = []
-    for root, _dirs, files in os.walk(folder_path):
-        for f in files:
-            if f.lower().endswith(image_extensions) and not f.startswith("."):
-                image_files.append(os.path.join(root, f))
+    folder = Path(folder_path)
+    for file_path in folder.rglob("*"):
+        if file_path.is_file() and file_path.suffix.lower() in image_extensions and not file_path.name.startswith("."):
+            image_files.append(str(file_path))
 
     return image_files
 
@@ -41,11 +41,12 @@ class ImageFolder(BasePlugin):
             msg = "Folder path is required."
             raise RuntimeError(msg)
 
-        if not os.path.exists(folder_path):
+        folder = Path(folder_path)
+        if not folder.exists():
             msg = f"Folder does not exist: {folder_path}"
             raise RuntimeError(msg)
 
-        if not os.path.isdir(folder_path):
+        if not folder.is_dir():
             msg = f"Path is not a directory: {folder_path}"
             raise RuntimeError(msg)
 

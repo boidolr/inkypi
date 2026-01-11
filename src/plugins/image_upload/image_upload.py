@@ -1,6 +1,6 @@
 import logging
-import os
 import random
+from pathlib import Path
 
 from PIL import Image
 from PIL import ImageColor
@@ -69,9 +69,10 @@ class ImageUpload(BasePlugin):
             return
 
         for image_path in image_locations:
-            if os.path.exists(image_path):
+            image_file = Path(image_path)
+            if image_file.exists():
                 try:
-                    os.remove(image_path)
+                    image_file.unlink()
                     logger.info(f"Deleted uploaded image: {image_path}")
                 except Exception as e:
                     logger.warning(f"Failed to delete uploaded image {image_path}: {e}")
