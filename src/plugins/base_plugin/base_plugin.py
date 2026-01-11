@@ -28,7 +28,7 @@ class BasePlugin:
         self.config = config
 
         self.render_dir = self.get_plugin_dir("render")
-        if Path(self.render_dir).exists():
+        if self.render_dir.exists():
             # instantiate jinja2 env with base plugin and current plugin render directories
             loader = FileSystemLoader([self.render_dir, BASE_PLUGIN_RENDER_DIR])
             self.env = Environment(loader=loader, autoescape=select_autoescape(["html", "xml"]))
@@ -54,13 +54,13 @@ class BasePlugin:
         plugin_dir = Path(PLUGINS_DIR) / self.get_plugin_id()
         if path:
             plugin_dir = plugin_dir / path
-        return str(plugin_dir)
+        return plugin_dir
 
     def generate_settings_template(self):
         template_params = {"settings_template": "base_plugin/settings.html"}
 
         settings_path = self.get_plugin_dir("settings.html")
-        if Path(settings_path).is_file():
+        if settings_path.is_file():
             template_params["settings_template"] = f"{self.get_plugin_id()}/settings.html"
 
         template_params["frame_styles"] = FRAME_STYLES
@@ -70,7 +70,7 @@ class BasePlugin:
         # load the base plugin and current plugin css files
         css_files = [str(BASE_PLUGIN_RENDER_DIR / "plugin.css")]
         if css_file:
-            plugin_css = str(Path(self.render_dir) / css_file)
+            plugin_css = str(self.render_dir / css_file)
             css_files.append(plugin_css)
 
         template_params["style_sheets"] = css_files
