@@ -1,6 +1,5 @@
 import hashlib
 import logging
-import os
 import subprocess
 import tempfile
 from io import BytesIO
@@ -68,7 +67,7 @@ def resize_image(image, desired_size, image_settings=None):
     image = image.crop((x_offset, y_offset, x_offset + new_width, y_offset + new_height))
 
     # Step 3: Resize to the exact desired dimensions (if necessary)
-    return image.resize((desired_width, desired_height), Image.LANCZOS)
+    return image.resize((desired_width, desired_height), Image.Resampling.LANCZOS)
 
 
 def apply_image_enhancement(img, image_settings=None):
@@ -160,7 +159,7 @@ def take_screenshot(target, dimensions, timeout_ms=None):
     return image
 
 
-def pad_image_blur(img: Image, dimensions: tuple[int, int]) -> Image:
+def pad_image_blur(img: Image.Image, dimensions: tuple[int, int]) -> Image.Image:
     bkg = ImageOps.fit(img, dimensions)
     bkg = bkg.filter(ImageFilter.BoxBlur(8))
     img = ImageOps.contain(img, dimensions)

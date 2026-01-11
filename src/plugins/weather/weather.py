@@ -332,8 +332,7 @@ class Weather(BasePlugin):
             weather_icon = self.map_weather_code_to_icon(code, is_day)
             weather_icon_path = self.get_plugin_dir(f"icons/{weather_icon}.png")
 
-            int(dt.replace(hour=12, minute=0, second=0).timestamp())
-            target_date: date = dt.date() + timedelta(days=1)
+            target_date: date = dt.replace(hour=12, minute=0, second=0).date() + timedelta(days=1)
 
             try:
                 phase_age = moon.phase(target_date)
@@ -681,7 +680,7 @@ class Weather(BasePlugin):
                 logger.warning(f"Could not parse time string {time_str} for AQI.")
                 continue
         scale = ""
-        if current_aqi:
+        if current_aqi and current_aqi != "N/A":
             scale = ["Good", "Fair", "Moderate", "Poor", "Very Poor", "Ext Poor"][min(current_aqi // 20, 5)]
         data_points.append(
             {

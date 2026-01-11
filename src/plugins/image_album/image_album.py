@@ -6,7 +6,6 @@ import requests
 from PIL import Image
 from PIL import ImageColor
 from PIL import ImageOps
-from PIL.ImageFile import ImageFile
 
 from plugins.base_plugin.base_plugin import BasePlugin
 from utils.image_utils import pad_image_blur
@@ -50,7 +49,7 @@ class ImmichProvider:
 
         return [asset["id"] for asset in all_items]
 
-    def get_image(self, album: str) -> ImageFile | None:
+    def get_image(self, album: str) -> Image | None:
         try:
             logger.info(f"Getting id for album {album}")
             album_id = self.get_album_id(album)

@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class ImageUpload(BasePlugin):
-    def open_image(self, img_index: int, image_locations: list) -> Image:
+    def open_image(self, img_index: int, image_locations: list) -> Image.Image:
         if not image_locations:
             msg = "No images provided."
             raise RuntimeError(msg)
@@ -26,7 +26,7 @@ class ImageUpload(BasePlugin):
             raise RuntimeError(msg)
         return image
 
-    def generate_image(self, settings, device_config) -> Image:
+    def generate_image(self, settings, device_config) -> Image.Image:
         # Get the current index from the device json
         img_index = settings.get("image_index", 0)
         image_locations = settings.get("imageFiles[]")
@@ -62,7 +62,7 @@ class ImageUpload(BasePlugin):
             )
         return image
 
-    def cleanup(self, settings):
+    def cleanup(self, settings) -> None:
         """Delete all uploaded image files associated with this plugin instance."""
         image_locations = settings.get("imageFiles[]", [])
         if not image_locations:
