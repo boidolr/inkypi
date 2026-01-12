@@ -21,8 +21,8 @@ class ImageUpload(BasePlugin):
         try:
             image = Image.open(image_locations[img_index])
         except Exception as e:
-            logger.exception(f"Failed to read image file: {e!s}")
             msg = "Failed to read image file."
+            logger.exception(msg)
             raise RuntimeError(msg)
         return image
 

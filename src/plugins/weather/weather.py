@@ -110,8 +110,8 @@ class Weather(BasePlugin):
 
             template_params["title"] = title
         except Exception as e:
-            logger.exception(f"{weather_provider} request failed: {e!s}")
             msg = f"{weather_provider} request failure, please check logs."
+            logger.exception(msg)
             raise RuntimeError(msg)
 
         dimensions = device_config.get_resolution()

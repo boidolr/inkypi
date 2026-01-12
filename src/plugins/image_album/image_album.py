@@ -49,7 +49,7 @@ class ImmichProvider:
 
         return [asset["id"] for asset in all_items]
 
-    def get_image(self, album: str) -> Image | None:
+    def get_image(self, album: str) -> Image.Image | None:
         try:
             logger.info(f"Getting id for album {album}")
             album_id = self.get_album_id(album)

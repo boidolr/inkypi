@@ -76,8 +76,8 @@ class Clock(BasePlugin):
             elif clock_face == "Word Clock":
                 img = self.draw_word_clock(dimensions, current_time, primary_color, secondary_color)
         except Exception as e:
-            logger.exception(f"Failed to draw clock image: {e!s}")
             msg = "Failed to display clock."
+            logger.exception(msg)
             raise RuntimeError(msg)
         return img
 

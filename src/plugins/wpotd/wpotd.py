@@ -92,12 +92,12 @@ class Wpotd(BasePlugin):
             response.raise_for_status()
             return Image.open(BytesIO(response.content))
         except UnidentifiedImageError as e:
-            logger.exception(f"Unsupported image format at {url}: {e!s}")
             msg = "Unsupported image format."
+            logger.exception(f"{msg} {url}")
             raise RuntimeError(msg)
         except Exception as e:
-            logger.exception(f"Failed to load WPOTD image from {url}: {e!s}")
             msg = "Failed to load WPOTD image."
+            logger.exception(f"{msg} {url}")
             raise RuntimeError(msg)
 
     def _fetch_potd(self, cur_date: date) -> dict[str, Any]:
@@ -150,8 +150,8 @@ class Wpotd(BasePlugin):
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            logger.exception(f"Wikipedia API request failed with params {params}: {e!s}")
             msg = "Wikipedia API request failed."
+            logger.exception(f"{msg} params {params}: {e!s}")
             raise RuntimeError(msg)
 
     def _shrink_to_fit(self, image: Image.Image, max_width: int, max_height: int) -> Image.Image:

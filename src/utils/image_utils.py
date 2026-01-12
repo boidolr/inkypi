@@ -14,14 +14,13 @@ from PIL import ImageOps
 logger = logging.getLogger(__name__)
 
 
-def get_image(image_url):
+def get_image(image_url: str) -> Image.Image | None:
     response = requests.get(image_url)
-    img = None
     if 200 <= response.status_code < 300 or response.status_code == 304:
-        img = Image.open(BytesIO(response.content))
+        return Image.open(BytesIO(response.content))
     else:
         logger.error(f"Received non-200 response from {image_url}: status_code: {response.status_code}")
-    return img
+        return None
 
 
 def change_orientation(image, orientation, inverted=False):
@@ -99,24 +98,21 @@ def compute_image_hash(image):
 
 
 def take_screenshot_html(html_str, dimensions, timeout_ms=None):
-    image = None
     try:
         with tempfile.NamedTemporaryFile(suffix=".html", delete=True) as html_file:
             html_file.write(html_str.encode("utf-8"))
             html_file_path = html_file.name
 
-            image = take_screenshot(html_file_path, dimensions, timeout_ms)
+            return take_screenshot(html_file_path, dimensions, timeout_ms)
 
     except Exception as e:
         logger.exception(f"Failed to take screenshot: {e!s}")
-
-    return image
+        return None
 
 
 def take_screenshot(target, dimensions, timeout_ms=None):
-    image = None
     # Create a temporary output file for the screenshot
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as img_file:
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as img_file:
         img_file_path = img_file.name
 
         try:
@@ -151,12 +147,11 @@ def take_screenshot(target, dimensions, timeout_ms=None):
 
             # Load the image using PIL
             with Image.open(img_file_path) as img:
-                image = img.copy()
+                return img.copy()
 
         except Exception as e:
             logger.exception(f"Failed to take screenshot: {e!s}")
-
-    return image
+            return None
 
 
 def pad_image_blur(img: Image.Image, dimensions: tuple[int, int]) -> Image.Image:

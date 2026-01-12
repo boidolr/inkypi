@@ -50,47 +50,53 @@ else:
     PORT = 80
     logger.info("Starting InkyPi in PRODUCTION mode on port 80")
 logging.getLogger("waitress.queue").setLevel(logging.ERROR)
-app = Flask(__name__)
-src_dir = Path(__file__).parent
-template_dirs = [
-    src_dir / "templates",  # Default template folder
-    src_dir / "plugins",  # Plugin templates
-]
-app.jinja_loader = ChoiceLoader([FileSystemLoader(directory) for directory in template_dirs])
 
-device_config = Config()
-display_manager = DisplayManager(device_config)
-refresh_task = RefreshTask(device_config, display_manager)
 
-load_plugins(device_config.get_plugins())
+def create_app():
+    app = Flask(__name__)
+    src_dir = Path(__file__).parent
+    template_dirs = [
+        src_dir / "templates",  # Default template folder
+        src_dir / "plugins",  # Plugin templates
+    ]
+    app.jinja_loader = ChoiceLoader([FileSystemLoader(directory) for directory in template_dirs])
 
-# Store dependencies
-app.config["DEVICE_CONFIG"] = device_config
-app.config["DISPLAY_MANAGER"] = display_manager
-app.config["REFRESH_TASK"] = refresh_task
+    device_config = Config()
+    display_manager = DisplayManager(device_config)
+    refresh_task = RefreshTask(device_config, display_manager)
 
-# Set additional parameters
-app.config["MAX_FORM_PARTS"] = 10_000
+    load_plugins(device_config.get_plugins())
 
-# Register Blueprints
-app.register_blueprint(main_bp)
-app.register_blueprint(settings_bp)
-app.register_blueprint(plugin_bp)
-app.register_blueprint(playlist_bp)
+    # Store dependencies
+    app.config["DEVICE_CONFIG"] = device_config
+    app.config["DISPLAY_MANAGER"] = display_manager
+    app.config["REFRESH_TASK"] = refresh_task
 
-# Register opener for HEIF/HEIC images
-register_heif_opener()
+    # Set additional parameters
+    app.config["MAX_FORM_PARTS"] = 10_000
 
-if __name__ == "__main__":
+    # Register Blueprints
+    app.register_blueprint(main_bp)
+    app.register_blueprint(settings_bp)
+    app.register_blueprint(plugin_bp)
+    app.register_blueprint(playlist_bp)
+
+    return app
+
+
+def main():
+    app = create_app()
+    # Register opener for HEIF/HEIC images
+    register_heif_opener()
     # start the background refresh task
-    refresh_task.start()
+    app.config["REFRESH_TASK"].start()
 
     # display default inkypi image on startup
-    if device_config.get_config("startup") is True:
+    if app.config["DEVICE_CONFIG"].get_config("startup") is True:
         logger.info("Startup flag is set, displaying startup image")
-        img = generate_startup_image(device_config.get_resolution())
-        display_manager.display_image(img)
-        device_config.update_value("startup", False, write=True)
+        img = generate_startup_image(app.config["DEVICE_CONFIG"].get_resolution())
+        app.config["DISPLAY_MANAGER"].display_image(img)
+        app.config["DEVICE_CONFIG"].update_value("startup", False, write=True)
 
     try:
         # Run the Flask app
@@ -111,4 +117,8 @@ if __name__ == "__main__":
 
         serve(app, host="0.0.0.0", port=PORT, threads=1)
     finally:
-        refresh_task.stop()
+        app.config["REFRESH_TASK"].stop()
+
+
+if __name__ == "__main__":
+    main()

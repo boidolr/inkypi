@@ -28,8 +28,7 @@ class Calendar(BasePlugin):
         view = settings.get("viewMode")
 
         if not view:
-            msg = "View is required"
-            raise RuntimeError(msg)
+            raise RuntimeError("View is required")
         if view not in [
             "timeGridDay",
             "timeGridWeek",
