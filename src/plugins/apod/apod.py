@@ -67,7 +67,7 @@ class Apod(BasePlugin):
         try:
             img_data = requests.get(image_url)
             image = Image.open(BytesIO(img_data.content))
-        except Exception as e:
+        except Exception:
             msg = "Failed to load APOD image."
             logger.exception(msg)
             raise RuntimeError(msg)

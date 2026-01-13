@@ -41,6 +41,9 @@ waveshare = [
     "RPi.GPIO==0.7.1",
 ]
 
+[project.scripts]
+inkypi = "inkypi:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 

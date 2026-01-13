@@ -20,7 +20,7 @@ def stars_generate_image(plugin_instance, settings, device_config):
 
     try:
         stars = fetch_stars(github_repository)
-    except Exception as e:
+    except Exception:
         msg = "GitHub request failure, please check logs"
         logger.exception(msg)
         raise RuntimeError(msg)

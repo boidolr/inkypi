@@ -109,7 +109,7 @@ class Weather(BasePlugin):
                 raise RuntimeError(msg)
 
             template_params["title"] = title
-        except Exception as e:
+        except Exception:
             msg = f"{weather_provider} request failure, please check logs."
             logger.exception(msg)
             raise RuntimeError(msg)

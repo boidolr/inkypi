@@ -20,7 +20,7 @@ class ImageUpload(BasePlugin):
         # Open the image using Pillow
         try:
             image = Image.open(image_locations[img_index])
-        except Exception as e:
+        except Exception:
             msg = "Failed to read image file."
             logger.exception(msg)
             raise RuntimeError(msg)

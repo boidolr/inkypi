@@ -91,11 +91,11 @@ class Wpotd(BasePlugin):
             response = self.SESSION.get(url, headers=self.HEADERS, timeout=10)
             response.raise_for_status()
             return Image.open(BytesIO(response.content))
-        except UnidentifiedImageError as e:
+        except UnidentifiedImageError:
             msg = "Unsupported image format."
             logger.exception(f"{msg} {url}")
             raise RuntimeError(msg)
-        except Exception as e:
+        except Exception:
             msg = "Failed to load WPOTD image."
             logger.exception(f"{msg} {url}")
             raise RuntimeError(msg)

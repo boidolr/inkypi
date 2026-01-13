@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-# set up logging
 import logging.config
 from pathlib import Path
 
@@ -8,14 +7,10 @@ from pi_heif import register_heif_opener
 
 logging.config.fileConfig(Path(__file__).parent / "config" / "logging.conf")
 
-# suppress warning from inky library https://github.com/pimoroni/inky/issues/205
-import warnings
-
-warnings.filterwarnings("ignore", message=".*Busy Wait: Held high.*")
-
 import argparse
 import logging
 import random
+import warnings
 
 from flask import Flask
 from jinja2 import ChoiceLoader
@@ -33,23 +28,9 @@ from refresh_task import RefreshTask
 from utils.app_utils import generate_startup_image
 
 logger = logging.getLogger(__name__)
-
-# Parse command line arguments
-parser = argparse.ArgumentParser(description="InkyPi Display Server")
-parser.add_argument("--dev", action="store_true", help="Run in development mode")
-args = parser.parse_args()
-
-# Set development mode settings
-if args.dev:
-    Config.config_file = Config.BASE_DIR / "config" / "device_dev.json"
-    DEV_MODE = True
-    PORT = 8080
-    logger.info("Starting InkyPi in DEVELOPMENT mode on port 8080")
-else:
-    DEV_MODE = False
-    PORT = 80
-    logger.info("Starting InkyPi in PRODUCTION mode on port 80")
 logging.getLogger("waitress.queue").setLevel(logging.ERROR)
+# suppress warning from inky library https://github.com/pimoroni/inky/issues/205
+warnings.filterwarnings("ignore", message=".*Busy Wait: Held high.*")
 
 
 def create_app():
@@ -85,6 +66,22 @@ def create_app():
 
 
 def main():
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="InkyPi Display Server")
+    parser.add_argument("--dev", action="store_true", help="Run in development mode")
+    args = parser.parse_args()
+
+    # Set development mode settings
+    if args.dev:
+        Config.config_file = Config.BASE_DIR / "config" / "device_dev.json"
+        DEV_MODE = True
+        PORT = 8080
+        logger.info("Starting InkyPi in DEVELOPMENT mode on port 8080")
+    else:
+        DEV_MODE = False
+        PORT = 80
+        logger.info("Starting InkyPi in PRODUCTION mode on port 80")
+
     app = create_app()
     # Register opener for HEIF/HEIC images
     register_heif_opener()
