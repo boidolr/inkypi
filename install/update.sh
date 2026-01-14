@@ -108,7 +108,7 @@ echo "Update JS and CSS files"
 bash $SCRIPT_DIR/update_vendors.sh
 
 echo "Updating systemd service file"
-cp "$SCRIPT_DIR/inkypi.service" "/etc/systemd/system/inkypi.service"
+sudo cp "$SCRIPT_DIR/inkypi.service" "/etc/systemd/system/inkypi.service"
 
 echo "Restarting $APPNAME service."
 sudo systemctl daemon-reload

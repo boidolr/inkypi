@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 def shutdown_display():
     """Clear the display and set it to powersave mode."""
+    exit_code = 1
     try:
         logger.info("Starting display shutdown sequence")
 
@@ -35,9 +36,8 @@ def shutdown_display():
         # Handle different display types
         if display_type == "mock":
             logger.info("Mock display detected, no hardware shutdown needed")
-            return 0
-
-        if display_type == "inky":
+            exit_code = 0
+        elif display_type == "inky":
             try:
                 from PIL import Image  # noqa: PLC0415
 
@@ -52,10 +52,10 @@ def shutdown_display():
                 display.inky_display.set_image(white_image)
                 display.inky_display.show()
                 logger.info("Inky display cleared successfully")
+                exit_code = 0
 
             except Exception:
                 logger.exception("Error clearing Inky display")
-                return 1
 
         else:
             # Waveshare or other EPD display
@@ -74,13 +74,16 @@ def shutdown_display():
                 logger.info("Putting Waveshare display into sleep mode")
                 display.epd_display.sleep()
                 logger.info("Waveshare display in sleep mode")
+                exit_code = 0
 
             except Exception:
                 logger.exception("Error shutting down Waveshare display")
-                return 1
 
-        logger.info("Display shutdown sequence completed successfully")
-        return 0  # noqa: TRY300
+        if exit_code == 0:
+            logger.info("Display shutdown sequence completed successfully")
+        else:
+            logger.info("Display shutdown encountered errors")
+        return exit_code  # noqa: TRY300
 
     except Exception:
         logger.exception("Unexpected error during display shutdown")
