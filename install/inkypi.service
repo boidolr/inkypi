@@ -8,6 +8,7 @@ User=root
 RuntimeDirectory=inkypi
 WorkingDirectory=/run/inkypi
 ExecStart=/usr/local/bin/inkypi
+ExecStop=/usr/local/inkypi/install/shutdown_display.sh
 Restart=on-failure
 RestartSec=60
 KillSignal=SIGINT
@@ -15,6 +16,7 @@ StandardOutput=journal
 StandardError=journal
 CPUQuota=50%
 MemoryMax=200M
+TimeoutStopSec=30
 
 [Install]
 WantedBy=multi-user.target

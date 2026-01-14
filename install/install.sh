@@ -219,6 +219,12 @@ install_app_service() {
   echo "Installing $APPNAME systemd service."
   if [ -f "$SERVICE_FILE_SOURCE" ]; then
     cp "$SERVICE_FILE_SOURCE" "$SERVICE_FILE_TARGET"
+    
+    # Install shutdown script
+    echo "Installing shutdown script"
+    cp "$SCRIPT_DIR/shutdown_display.sh" "$INSTALL_PATH/install/"
+    chmod +x "$INSTALL_PATH/install/shutdown_display.sh"
+    
     sudo systemctl daemon-reload
     sudo systemctl enable $SERVICE_FILE
   else

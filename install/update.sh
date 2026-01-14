@@ -99,8 +99,16 @@ echo "Updating executable in ${BINPATH}/$APPNAME"
 cp $SCRIPT_DIR/inkypi $BINPATH/
 sudo chmod +x $BINPATH/$APPNAME
 
+echo "Updating shutdown script"
+mkdir -p "$INSTALL_PATH/install"
+cp $SCRIPT_DIR/shutdown_display.sh "$INSTALL_PATH/install/"
+chmod +x "$INSTALL_PATH/install/shutdown_display.sh"
+
 echo "Update JS and CSS files"
 bash $SCRIPT_DIR/update_vendors.sh
+
+echo "Updating systemd service file"
+cp "$SCRIPT_DIR/inkypi.service" "/etc/systemd/system/inkypi.service"
 
 echo "Restarting $APPNAME service."
 sudo systemctl daemon-reload
