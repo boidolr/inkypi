@@ -13,7 +13,7 @@ RestartSec=60
 KillSignal=SIGINT
 StandardOutput=journal
 StandardError=journal
-CPUQuota=40%
+CPUQuota=50%
 MemoryMax=200M
 
 [Install]

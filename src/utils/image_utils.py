@@ -1,9 +1,9 @@
-import hashlib
 import logging
 import subprocess
 import tempfile
 from io import BytesIO
 from pathlib import Path
+from zlib import adler32
 
 import requests
 from PIL import Image
@@ -65,7 +65,7 @@ def resize_image(image, desired_size, image_settings=None):
     image = image.crop((x_offset, y_offset, x_offset + new_width, y_offset + new_height))
 
     # Step 3: Resize to the exact desired dimensions (if necessary)
-    return image.resize((desired_width, desired_height), Image.Resampling.LANCZOS)
+    return image.resize((desired_width, desired_height), Image.Resampling.LANCZOS, reducing_gap=2.0)
 
 
 def apply_image_enhancement(img, image_settings=None):
@@ -93,7 +93,7 @@ def compute_image_hash(image):
     """Compute SHA-256 hash of an image."""
     image = image.convert("RGB")
     img_bytes = image.tobytes()
-    return hashlib.sha256(img_bytes).hexdigest()
+    return hex(adler32(img_bytes))
 
 
 def take_screenshot_html(html_str, dimensions, timeout_ms=None):
