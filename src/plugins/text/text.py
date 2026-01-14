@@ -1,5 +1,6 @@
-from plugins.base_plugin.base_plugin import BasePlugin
 import logging
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -27,6 +28,4 @@ class Text(BasePlugin):
             "plugin_settings": settings,
         }
 
-        image = self.render_image(dimensions, "text.html", "text.css", image_template_params)
-
-        return image
+        return self.render_image(dimensions, "text.html", "text.css", image_template_params)

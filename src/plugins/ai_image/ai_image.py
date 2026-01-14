@@ -54,8 +54,8 @@ class AIImage(BasePlugin):
                 orientation=device_config.get_config("orientation"),
             )
         except Exception as e:
-            logger.exception(f"Failed to make Open AI request: {e!s}")
             msg = "Open AI request failure, please check logs."
+            logger.exception(msg)
             raise RuntimeError(msg)
         return image
 
