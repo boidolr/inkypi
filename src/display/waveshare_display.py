@@ -40,6 +40,10 @@ class WaveshareDisplay(AbstractDisplay):
     The module drivers are in display.waveshare_epd.
     """
 
+    def __init__(self, device_config):
+        super().__init__(device_config)
+        self.clear_counter = None
+
     def initialize_display(self):
         """
         Initializes the Waveshare display device.
@@ -125,7 +129,11 @@ class WaveshareDisplay(AbstractDisplay):
         self.epd_display_init()
 
         # Clear residual pixels before updating the image.
-        self.epd_display.Clear()
+        if self.clear_counter is None or self.clear_counter <= 0:
+            self.clear_counter = 5
+            self.epd_display.Clear()
+        else:
+            self.clear_counter = self.clear_counter - 1
 
         # Display the image on the WS display.
         if not self.bi_color_display:
