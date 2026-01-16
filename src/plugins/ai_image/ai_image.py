@@ -1,10 +1,12 @@
-from plugins.base_plugin.base_plugin import BasePlugin
+import base64
+import logging
+from io import BytesIO
+
+import requests
 from openai import OpenAI
 from PIL import Image
-from io import BytesIO
-import base64
-import requests
-import logging
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -26,16 +28,16 @@ class AIImage(BasePlugin):
     def generate_image(self, settings, device_config):
         api_key = device_config.load_env_key("OPEN_AI_SECRET")
         if not api_key:
-            raise RuntimeError("OPEN AI API Key not configured.")
+            msg = "OPEN AI API Key not configured."
+            raise RuntimeError(msg)
 
         text_prompt = settings.get("textPrompt", "")
 
         image_model = settings.get("imageModel", DEFAULT_IMAGE_MODEL)
         if image_model not in IMAGE_MODELS:
-            raise RuntimeError("Invalid Image Model provided.")
-        image_quality = settings.get(
-            "quality", "medium" if image_model == "gpt-image-1" else "standard"
-        )
+            msg = "Invalid Image Model provided."
+            raise RuntimeError(msg)
+        image_quality = settings.get("quality", "medium" if image_model == "gpt-image-1" else "standard")
         randomize_prompt = settings.get("randomizePrompt") == "true"
 
         image = None
@@ -52,8 +54,9 @@ class AIImage(BasePlugin):
                 orientation=device_config.get_config("orientation"),
             )
         except Exception as e:
-            logger.error(f"Failed to make Open AI request: {str(e)}")
-            raise RuntimeError("Open AI request failure, please check logs.")
+            logger.exception(f"Failed to make Open AI request: {e!s}")
+            msg = "Open AI request failure, please check logs."
+            raise RuntimeError(msg)
         return image
 
     @staticmethod
@@ -99,7 +102,7 @@ class AIImage(BasePlugin):
 
     @staticmethod
     def fetch_image_prompt(ai_client, from_prompt=None):
-        logger.info(f"Getting random image prompt...")
+        logger.info("Getting random image prompt...")
 
         system_content = (
             "You are a creative assistant generating extremely random and unique image prompts. "

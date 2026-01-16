@@ -1,9 +1,12 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image, ImageOps, ImageColor
 import logging
-import random
 import os
+import random
 
+from PIL import Image
+from PIL import ImageColor
+from PIL import ImageOps
+
+from plugins.base_plugin.base_plugin import BasePlugin
 from utils.image_utils import pad_image_blur
 
 logger = logging.getLogger(__name__)
@@ -12,13 +15,15 @@ logger = logging.getLogger(__name__)
 class ImageUpload(BasePlugin):
     def open_image(self, img_index: int, image_locations: list) -> Image:
         if not image_locations:
-            raise RuntimeError("No images provided.")
+            msg = "No images provided."
+            raise RuntimeError(msg)
         # Open the image using Pillow
         try:
             image = Image.open(image_locations[img_index])
         except Exception as e:
-            logger.error(f"Failed to read image file: {str(e)}")
-            raise RuntimeError("Failed to read image file.")
+            logger.exception(f"Failed to read image file: {e!s}")
+            msg = "Failed to read image file."
+            raise RuntimeError(msg)
         return image
 
     def generate_image(self, settings, device_config) -> Image:
@@ -48,16 +53,13 @@ class ImageUpload(BasePlugin):
 
             if settings.get("backgroundOption") == "blur":
                 return pad_image_blur(image, dimensions)
-            else:
-                background_color = ImageColor.getcolor(
-                    settings.get("backgroundColor") or (255, 255, 255), "RGB"
-                )
-                return ImageOps.pad(
-                    image,
-                    dimensions,
-                    color=background_color,
-                    method=Image.Resampling.LANCZOS,
-                )
+            background_color = ImageColor.getcolor(settings.get("backgroundColor") or (255, 255, 255), "RGB")
+            return ImageOps.pad(
+                image,
+                dimensions,
+                color=background_color,
+                method=Image.Resampling.LANCZOS,
+            )
         return image
 
     def cleanup(self, settings):

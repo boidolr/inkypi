@@ -1,6 +1,12 @@
-from flask import Blueprint, request, jsonify, current_app, render_template, send_file
 import os
 from datetime import datetime
+
+from flask import Blueprint
+from flask import current_app
+from flask import jsonify
+from flask import render_template
+from flask import request
+from flask import send_file
 
 main_bp = Blueprint("main", __name__)
 

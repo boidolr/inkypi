@@ -1,4 +1,5 @@
 import logging
+
 import requests
 
 logger = logging.getLogger(__name__)
@@ -14,13 +15,15 @@ def stars_generate_image(plugin_instance, settings, device_config):
 
     github_repository = username + "/" + repository
     if not github_repository:
-        raise RuntimeError("GitHub repository is required.")
+        msg = "GitHub repository is required."
+        raise RuntimeError(msg)
 
     try:
         stars = fetch_stars(github_repository)
     except Exception as e:
-        logger.error(f"GitHub graphql request failed: {str(e)}")
-        raise RuntimeError(f"GitHub request failure, please check logs")
+        logger.exception(f"GitHub graphql request failed: {e!s}")
+        msg = "GitHub request failure, please check logs"
+        raise RuntimeError(msg)
 
     template_params = {
         "repository": github_repository,
@@ -28,9 +31,7 @@ def stars_generate_image(plugin_instance, settings, device_config):
         "plugin_settings": settings,
     }
 
-    return plugin_instance.render_image(
-        dimensions, "github_stars.html", "github.css", template_params
-    )
+    return plugin_instance.render_image(dimensions, "github_stars.html", "github.css", template_params)
 
 
 def fetch_stars(github_repository):

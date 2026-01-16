@@ -1,11 +1,17 @@
-from flask import Blueprint, request, jsonify, current_app, render_template
-from utils.time_utils import calculate_seconds
 import json
-from datetime import datetime, timedelta
-import os
 import logging
-from utils.app_utils import resolve_path, handle_request_files, parse_form
+from datetime import datetime
+from datetime import timedelta
 
+from flask import Blueprint
+from flask import current_app
+from flask import jsonify
+from flask import render_template
+from flask import request
+
+from utils.app_utils import handle_request_files
+from utils.app_utils import parse_form
+from utils.time_utils import calculate_seconds
 
 logger = logging.getLogger(__name__)
 playlist_bp = Blueprint("playlist", __name__)
@@ -14,7 +20,7 @@ playlist_bp = Blueprint("playlist", __name__)
 @playlist_bp.route("/add_plugin", methods=["POST"])
 def add_plugin():
     device_config = current_app.config["DEVICE_CONFIG"]
-    refresh_task = current_app.config["REFRESH_TASK"]
+    current_app.config["REFRESH_TASK"]
     playlist_manager = device_config.get_playlist_manager()
 
     try:
@@ -29,9 +35,7 @@ def add_plugin():
         if not instance_name or not instance_name.strip():
             return jsonify({"error": "Instance name is required"}), 400
         if not all(char.isalpha() or char.isspace() or char.isnumeric() for char in instance_name):
-            return jsonify(
-                {"error": "Instance name can only contain alphanumeric characters and spaces"}
-            ), 400
+            return jsonify({"error": "Instance name can only contain alphanumeric characters and spaces"}), 400
         refresh_type = refresh_settings.get("refreshType")
         if not refresh_type or refresh_type not in ["interval", "scheduled"]:
             return jsonify({"error": "Refresh type is required"}), 400
@@ -70,7 +74,7 @@ def add_plugin():
 
         device_config.write_config()
     except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"An error occurred: {e!s}"}), 500
     return jsonify({"success": True, "message": "Scheduled refresh configured."})
 
 
@@ -116,7 +120,7 @@ def create_playlist():
 
     except Exception as e:
         logger.exception("EXCEPTION CAUGHT: " + str(e))
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"An error occurred: {e!s}"}), 500
 
     return jsonify({"success": True, "message": "Created new Playlist!"})
 
@@ -152,7 +156,7 @@ def delete_playlist(playlist_name):
     playlist_manager = device_config.get_playlist_manager()
 
     if not playlist_name:
-        return jsonify({"error": f"Playlist name is required"}), 400
+        return jsonify({"error": "Playlist name is required"}), 400
 
     playlist = playlist_manager.get_playlist(playlist_name)
     if not playlist:
@@ -177,7 +181,8 @@ def format_relative_time(iso_date_string):
 
     # Get the timezone from the parsed datetime
     if dt.tzinfo is None:
-        raise ValueError("Input datetime doesn't have a timezone.")
+        msg = "Input datetime doesn't have a timezone."
+        raise ValueError(msg)
 
     # Get the current time in the same timezone as the input datetime
     now = datetime.now(dt.tzinfo)
@@ -194,11 +199,10 @@ def format_relative_time(iso_date_string):
     # Determine relative time string
     if diff_seconds < 120:
         return "just now"
-    elif diff_minutes < 60:
+    if diff_minutes < 60:
         return f"{int(diff_minutes)} minutes ago"
-    elif dt.date() == now.date():
+    if dt.date() == now.date():
         return "today at " + dt.strftime(time_format).lstrip("0")
-    elif dt.date() == (now.date() - timedelta(days=1)):
+    if dt.date() == (now.date() - timedelta(days=1)):
         return "yesterday at " + dt.strftime(time_format).lstrip("0")
-    else:
-        return dt.strftime(month_day_format).replace(" 0", " ")  # Removes leading zero in day
+    return dt.strftime(month_day_format).replace(" 0", " ")  # Removes leading zero in day

@@ -1,14 +1,24 @@
-from flask import Blueprint, request, jsonify, current_app, render_template, Response
-from utils.time_utils import calculate_seconds
-from datetime import datetime, timedelta
-import os
-import pytz
-import logging
 import io
+import logging
+import os
+from datetime import datetime
+from datetime import timedelta
+
+import pytz
+from flask import Blueprint
+from flask import current_app
+from flask import jsonify
+from flask import render_template
+from flask import request
+from flask import Response
+
+from utils.time_utils import calculate_seconds
 
 # Try to import cysystemd for journal reading (Linux only)
 try:
-    from cysystemd.reader import JournalReader, JournalOpenMode, Rule
+    from cysystemd.reader import JournalOpenMode
+    from cysystemd.reader import JournalReader
+    from cysystemd.reader import Rule
 
     JOURNAL_AVAILABLE = True
 except ImportError:
@@ -34,9 +44,7 @@ settings_bp = Blueprint("settings", __name__)
 def settings_page():
     device_config = current_app.config["DEVICE_CONFIG"]
     timezones = sorted(pytz.all_timezones_set)
-    return render_template(
-        "settings.html", device_settings=device_config.get_config(), timezones=timezones
-    )
+    return render_template("settings.html", device_settings=device_config.get_config(), timezones=timezones)
 
 
 @settings_bp.route("/save_settings", methods=["POST"])
@@ -88,7 +96,7 @@ def save_settings():
     except RuntimeError as e:
         return jsonify({"error": str(e)}), 500
     except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"An error occurred: {e!s}"}), 500
     return jsonify({"success": True, "message": "Saved settings."})
 
 
@@ -119,13 +127,9 @@ def download_logs():
 
         if not JOURNAL_AVAILABLE:
             # Return a message when running in development mode without systemd
-            buffer.write(
-                f"Log download not available in development mode (cysystemd not installed).\n"
-            )
-            buffer.write(
-                f"Logs would normally show InkyPi service logs from the last {hours} hours.\n"
-            )
-            buffer.write(f"\nTo see Flask development logs, check your terminal output.\n")
+            buffer.write("Log download not available in development mode (cysystemd not installed).\n")
+            buffer.write(f"Logs would normally show InkyPi service logs from the last {hours} hours.\n")
+            buffer.write("\nTo see Flask development logs, check your terminal output.\n")
         else:
             reader = JournalReader()
             reader.open(JournalOpenMode.SYSTEM)
@@ -159,5 +163,5 @@ def download_logs():
         )
 
     except Exception as e:
-        logger.error(f"Error reading logs: {e}")
+        logger.exception(f"Error reading logs: {e}")
         return Response(f"Error reading logs: {e}", status=500, mimetype="text/plain")

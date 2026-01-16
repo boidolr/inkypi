@@ -1,8 +1,10 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image
-from io import BytesIO
-import requests
 import logging
+from io import BytesIO
+
+import requests
+from PIL import Image
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +15,9 @@ def grab_image(image_url, dimensions, timeout_ms=40000):
         response = requests.get(image_url, timeout=timeout_ms / 1000)
         response.raise_for_status()
         img = Image.open(BytesIO(response.content))
-        img = img.resize(dimensions, Image.LANCZOS)
-        return img
+        return img.resize(dimensions, Image.LANCZOS)
     except Exception as e:
-        logger.error(f"Error grabbing image from {image_url}: {e}")
+        logger.exception(f"Error grabbing image from {image_url}: {e}")
         return None
 
 
@@ -24,7 +25,8 @@ class ImageURL(BasePlugin):
     def generate_image(self, settings, device_config):
         url = settings.get("url")
         if not url:
-            raise RuntimeError("URL is required.")
+            msg = "URL is required."
+            raise RuntimeError(msg)
 
         dimensions = device_config.get_resolution()
         if device_config.get_config("orientation") == "vertical":
@@ -35,6 +37,7 @@ class ImageURL(BasePlugin):
         image = grab_image(url, dimensions, timeout_ms=40000)
 
         if not image:
-            raise RuntimeError("Failed to load image, please check logs.")
+            msg = "Failed to load image, please check logs."
+            raise RuntimeError(msg)
 
         return image

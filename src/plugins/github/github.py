@@ -1,8 +1,9 @@
+import logging
+
 from ..base_plugin.base_plugin import BasePlugin
 from .github_contributions import contributions_generate_image
 from .github_sponsors import sponsors_generate_image
 from .github_stars import stars_generate_image
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +25,13 @@ class GitHub(BasePlugin):
 
             if github_type == "contributions":
                 return contributions_generate_image(self, settings, device_config)
-            elif github_type == "sponsors":
+            if github_type == "sponsors":
                 return sponsors_generate_image(self, settings, device_config)
-            elif github_type == "stars":
+            if github_type == "stars":
                 return stars_generate_image(self, settings, device_config)
-            else:
-                logger.error(f"Unknown GitHub type: {github_type}")
-                raise ValueError(f"Unknown GitHub type: {github_type}")
+            logger.error(f"Unknown GitHub type: {github_type}")
+            msg = f"Unknown GitHub type: {github_type}"
+            raise ValueError(msg)
         except Exception as e:
-            logger.error(f"GitHub image generation failed: {str(e)}")
+            logger.exception(f"GitHub image generation failed: {e!s}")
             raise

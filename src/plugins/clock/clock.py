@@ -1,13 +1,15 @@
-import os
-from utils.app_utils import resolve_path, get_font
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image, ImageColor, ImageDraw, ImageFont
-from io import BytesIO
 import logging
-import numpy as np
 import math
 from datetime import datetime
+
+import numpy as np
 import pytz
+from PIL import Image
+from PIL import ImageColor
+from PIL import ImageDraw
+
+from plugins.base_plugin.base_plugin import BasePlugin
+from utils.app_utils import get_font
 
 logger = logging.getLogger(__name__)
 
@@ -66,31 +68,24 @@ class Clock(BasePlugin):
         img = None
         try:
             if clock_face == "Gradient Clock":
-                img = self.draw_conic_clock(
-                    dimensions, current_time, primary_color, secondary_color
-                )
+                img = self.draw_conic_clock(dimensions, current_time, primary_color, secondary_color)
             elif clock_face == "Digital Clock":
-                img = self.draw_digital_clock(
-                    dimensions, current_time, primary_color, secondary_color
-                )
+                img = self.draw_digital_clock(dimensions, current_time, primary_color, secondary_color)
             elif clock_face == "Divided Clock":
-                img = self.draw_divided_clock(
-                    dimensions, current_time, primary_color, secondary_color
-                )
+                img = self.draw_divided_clock(dimensions, current_time, primary_color, secondary_color)
             elif clock_face == "Word Clock":
                 img = self.draw_word_clock(dimensions, current_time, primary_color, secondary_color)
         except Exception as e:
-            logger.error(f"Failed to draw clock image: {str(e)}")
-            raise RuntimeError("Failed to display clock.")
+            logger.exception(f"Failed to draw clock image: {e!s}")
+            msg = "Failed to display clock."
+            raise RuntimeError(msg)
         return img
 
-    def draw_digital_clock(
-        self, dimensions, time, primary_color=(255, 255, 255), secondary_color=(0, 0, 0)
-    ):
+    def draw_digital_clock(self, dimensions, time, primary_color=(255, 255, 255), secondary_color=(0, 0, 0)):
         w, h = dimensions
         time_str = Clock.format_time(time.hour, time.minute, zero_pad=True)
 
-        image = Image.new("RGBA", dimensions, secondary_color + (255,))
+        image = Image.new("RGBA", dimensions, (*secondary_color, 255))
         text = Image.new("RGBA", dimensions, (0, 0, 0, 0))
 
         font_size = w * 0.36
@@ -98,12 +93,10 @@ class Clock(BasePlugin):
         text_draw = ImageDraw.Draw(text)
 
         # time text
-        text_draw.text((w / 2, h / 2), "00:00", font=fnt, anchor="mm", fill=primary_color + (30,))
-        text_draw.text((w / 2, h / 2), time_str, font=fnt, anchor="mm", fill=primary_color + (255,))
+        text_draw.text((w / 2, h / 2), "00:00", font=fnt, anchor="mm", fill=(*primary_color, 30))
+        text_draw.text((w / 2, h / 2), time_str, font=fnt, anchor="mm", fill=(*primary_color, 255))
 
-        combined = Image.alpha_composite(image, text)
-
-        return combined
+        return Image.alpha_composite(image, text)
 
     def draw_conic_clock(
         self,
@@ -116,9 +109,7 @@ class Clock(BasePlugin):
         hour_angle, minute_angle = Clock.calculate_clock_angles(time)
 
         # Draw the hour hand gradient
-        image_hour = Clock.draw_gradient_image(
-            width, height, hour_angle, minute_angle, secondary_color, primary_color
-        )
+        image_hour = Clock.draw_gradient_image(width, height, hour_angle, minute_angle, secondary_color, primary_color)
         # Draw the minute hand gradient
         image_minute = Clock.draw_gradient_image(
             width, height, minute_angle, hour_angle, secondary_color, primary_color
@@ -177,14 +168,14 @@ class Clock(BasePlugin):
         secondary_color=(255, 255, 255),
     ):
         w, h = dimensions
-        bg = Image.new("RGBA", dimensions, primary_color + (255,))
+        bg = Image.new("RGBA", dimensions, (*primary_color, 255))
         bg_draw = ImageDraw.Draw(bg)
 
         # used to calculate percentages of sizes
         dim = min(w, h)
 
         corners = [(0, h / 2), (w, h)]
-        bg_draw.rectangle(corners, fill=secondary_color + (255,))
+        bg_draw.rectangle(corners, fill=(*secondary_color, 255))
 
         canvas = Image.new("RGBA", dimensions, (0, 0, 0, 0))
         image_draw = ImageDraw.Draw(canvas)
@@ -235,16 +226,12 @@ class Clock(BasePlugin):
             width=max(int(dim * 0.007), 1),
         )
 
-        combined = Image.alpha_composite(bg, canvas)
+        return Image.alpha_composite(bg, canvas)
 
-        return combined
-
-    def draw_word_clock(
-        self, dimensions, time, primary_color=(0, 0, 0), secondary_color=(255, 255, 255)
-    ):
+    def draw_word_clock(self, dimensions, time, primary_color=(0, 0, 0), secondary_color=(255, 255, 255)):
         w, h = dimensions
 
-        bg = Image.new("RGBA", dimensions, primary_color + (255,))
+        bg = Image.new("RGBA", dimensions, (*primary_color, 255))
 
         dim = min(w, h)
 
@@ -281,21 +268,20 @@ class Clock(BasePlugin):
                 x_pos = x * (canvas_size / (len(row) - 1)) + border[0]
                 y_pos = y * (canvas_size / (len(letter_grid) - 1)) + border[1]
 
-                fill = secondary_color + (50,)
+                fill = (*secondary_color, 50)
                 if [y, x] in letter_positions:
-                    fill = secondary_color + (255,)
+                    fill = (*secondary_color, 255)
                     image_draw.text(
                         (x_pos + 2, y_pos + 2),
                         letter,
                         anchor="mm",
-                        fill=secondary_color + (80,),
+                        fill=(*secondary_color, 80),
                         font=fnt,
                     )
 
                 image_draw.text((x_pos, y_pos), letter, anchor="mm", fill=fill, font=fnt)
 
-        combined = Image.alpha_composite(bg, canvas)
-        return combined
+        return Image.alpha_composite(bg, canvas)
 
     @staticmethod
     def format_time(hour, minute, zero_pad=False):
@@ -333,9 +319,7 @@ class Clock(BasePlugin):
         start_color = Clock.pad_color(start_color)
         end_color = Clock.pad_color(end_color)
         for c in range(4):  # Iterate through RGBA channels
-            gradient[..., c] = (start_color[c] * (1 - theta) + end_color[c] * (theta)).astype(
-                np.uint8
-            )
+            gradient[..., c] = (start_color[c] * (1 - theta) + end_color[c] * (theta)).astype(np.uint8)
 
         # Fill with the specified solid color
         gradient[~anglemask] = (0, 0, 0, 0)
@@ -444,15 +428,11 @@ class Clock(BasePlugin):
         second = time.second
 
         # Minute hand angle (6 degrees per minute, 0.1 degrees per second)
-        minute_angle = (
-            90 - (minute * 6 + second * 0.1)
-        ) % 360  # Convert to degrees, shift so 12:00 = 90°
+        minute_angle = (90 - (minute * 6 + second * 0.1)) % 360  # Convert to degrees, shift so 12:00 = 90°
         minute_angle = math.radians(minute_angle)  # Convert to radians
 
         # Hour hand angle (30 degrees per hour + offset by minutes and seconds)
-        hour_angle = (
-            90 - (hour * 30 + minute * 0.5 + second * (0.5 / 60))
-        ) % 360  # Convert to degrees
+        hour_angle = (90 - (hour * 30 + minute * 0.5 + second * (0.5 / 60))) % 360  # Convert to degrees
         hour_angle = math.radians(hour_angle)  # Convert to radians
 
         return hour_angle, minute_angle
@@ -495,9 +475,7 @@ class Clock(BasePlugin):
 
             # Calculate the end point of the line
             end_x = x + radius * math.cos(angle_rad)
-            end_y = y - radius * math.sin(
-                angle_rad
-            )  # Negative y because PIL's y-coordinates increase downward
+            end_y = y - radius * math.sin(angle_rad)  # Negative y because PIL's y-coordinates increase downward
 
             # Draw the line
             draw.line([(start_x, start_y), (end_x, end_y)], fill=line_color, width=line_width)

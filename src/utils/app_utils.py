@@ -2,9 +2,12 @@ import logging
 import os
 import socket
 import subprocess
-
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
+from PIL import ImageOps
 
 logger = logging.getLogger(__name__)
 
@@ -42,14 +45,12 @@ def resolve_path(file_path):
 def get_ip_address():
     with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
         s.connect(("8.8.8.8", 80))
-        ip_address = s.getsockname()[0]
-    return ip_address
+        return s.getsockname()[0]
 
 
 def get_wifi_name():
     try:
-        output = subprocess.check_output(["iwgetid", "-r"]).decode("utf-8").strip()
-        return output
+        return subprocess.check_output(["iwgetid", "-r"]).decode("utf-8").strip()
     except subprocess.CalledProcessError:
         return None
 
@@ -78,12 +79,9 @@ def get_font(font_name, font_size=50, font_weight="normal"):
         if font_entry:
             font_path = resolve_path(os.path.join("static", "fonts", font_entry["file"]))
             return ImageFont.truetype(font_path, font_size)
-        else:
-            logger.warn(
-                f"Requested font weight not found: font_name={font_name}, font_weight={font_weight}"
-            )
+        logger.warning(f"Requested font weight not found: font_name={font_name}, font_weight={font_weight}")
     else:
-        logger.warn(f"Requested font not found: font_name={font_name}")
+        logger.warning(f"Requested font not found: font_name={font_name}")
 
     return None
 
@@ -159,13 +157,15 @@ def generate_startup_image(dimensions=(800, 480)):
 
 def parse_form(request_form):
     request_dict = request_form.to_dict()
-    for key in request_form.keys():
+    for key in request_form:
         if key.endswith("[]"):
             request_dict[key] = request_form.getlist(key)
     return request_dict
 
 
-def handle_request_files(request_files, form_data={}):
+def handle_request_files(request_files, form_data=None):
+    if form_data is None:
+        form_data = {}
     allowed_file_extensions = {
         "pdf",
         "png",
@@ -205,7 +205,7 @@ def handle_request_files(request_files, form_data={}):
                     img = ImageOps.exif_transpose(img)
                     img.save(file_path)
             except Exception as e:
-                logger.warn(f"EXIF processing error for {file_name}: {e}")
+                logger.warning(f"EXIF processing error for {file_name}: {e}")
                 file.save(file_path)
         else:
             # Directly save non-JPEG files

@@ -1,8 +1,13 @@
 import json
-from src.plugins.plugin_registry import load_plugins, get_plugin_instance
-from src.utils.image_utils import resize_image, change_orientation
-from unittest.mock import patch, MagicMock
+import sys
+from unittest.mock import MagicMock
+
 from PIL import Image
+
+from src.plugins.plugin_registry import get_plugin_instance
+from src.plugins.plugin_registry import load_plugins
+from src.utils.image_utils import change_orientation
+from src.utils.image_utils import resize_image
 
 PLUGIN_CONFIG_FILE = "install/config_base/plugins.json"
 RESOLUTIONS = [
@@ -28,7 +33,7 @@ with open(PLUGIN_CONFIG_FILE) as f:
 plugin_config = [config for config in plugins if config.get("id") == plugin_id]
 
 if not plugin_config:
-    exit(f"Plugin {plugin_id} not found in plugin config file: {PLUGIN_CONFIG_FILE}")
+    sys.exit(f"Plugin {plugin_id} not found in plugin config file: {PLUGIN_CONFIG_FILE}")
 
 load_plugins(plugin_config)
 

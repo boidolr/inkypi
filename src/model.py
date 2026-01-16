@@ -1,7 +1,6 @@
-import os
-import json
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
 
 logger = logging.getLogger(__name__)
 
@@ -78,8 +77,10 @@ class PlaylistManager:
     DEFAULT_PLAYLIST_START = "00:00"
     DEFAULT_PLAYLIST_END = "24:00"
 
-    def __init__(self, playlists=[], active_playlist=None):
+    def __init__(self, playlists=None, active_playlist=None):
         """Initialize PlaylistManager with a list of playlists."""
+        if playlists is None:
+            playlists = []
         self.playlists = playlists
         self.active_playlist = active_playlist
 
@@ -117,9 +118,7 @@ class PlaylistManager:
 
         # Sort playlists by priority
         active_playlists.sort(key=lambda p: p.get_priority())
-        playlist = active_playlists[0]
-
-        return playlist
+        return active_playlists[0]
 
     def get_playlist(self, playlist_name):
         """Returns the playlist with the specified name."""
@@ -205,16 +204,13 @@ class Playlist:
         if self.start_time <= self.end_time:
             # Non-wrapping window (EG: 09:00-15:00)
             return self.start_time <= current_time < self.end_time
-        else:
-            # Wrapping window across midnight (EG: 21:00-03:00)
-            return current_time >= self.start_time or current_time < self.end_time
+        # Wrapping window across midnight (EG: 21:00-03:00)
+        return current_time >= self.start_time or current_time < self.end_time
 
     def add_plugin(self, plugin_data):
         """Add a new plugin instance to the playlist."""
         if self.find_plugin(plugin_data["plugin_id"], plugin_data["name"]):
-            logger.warning(
-                f"Plugin '{plugin_data['plugin_id']}' with instance '{plugin_data['name']}' already exists."
-            )
+            logger.warning(f"Plugin '{plugin_data['plugin_id']}' with instance '{plugin_data['name']}' already exists.")
             return False
         self.plugins.append(PluginInstance.from_dict(plugin_data))
         return True
@@ -231,9 +227,7 @@ class Playlist:
     def delete_plugin(self, plugin_id, name):
         """Remove a specific plugin instance from the playlist."""
         initial_count = len(self.plugins)
-        self.plugins = [
-            p for p in self.plugins if not (p.plugin_id == plugin_id and p.name == name)
-        ]
+        self.plugins = [p for p in self.plugins if not (p.plugin_id == plugin_id and p.name == name)]
 
         if len(self.plugins) == initial_count:
             logger.warning(f"Plugin '{plugin_id}' with instance '{name}' not found.")
@@ -349,8 +343,7 @@ class PluginInstance:
 
             # Determine if a refresh is needed based on scheduled time and last refresh
             if (latest_refresh_date < current_date and current_time.time() >= scheduled_time) or (
-                latest_refresh_date == current_date
-                and latest_refresh_dt.time() < scheduled_time <= current_time.time()
+                latest_refresh_date == current_date and latest_refresh_dt.time() < scheduled_time <= current_time.time()
             ):
                 return True
 

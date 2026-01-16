@@ -1,11 +1,15 @@
-import requests
-from PIL import Image, ImageEnhance, ImageOps, ImageFilter
-from io import BytesIO
-import os
-import logging
 import hashlib
-import tempfile
+import logging
+import os
 import subprocess
+import tempfile
+from io import BytesIO
+
+import requests
+from PIL import Image
+from PIL import ImageEnhance
+from PIL import ImageFilter
+from PIL import ImageOps
 
 logger = logging.getLogger(__name__)
 
@@ -16,9 +20,7 @@ def get_image(image_url):
     if 200 <= response.status_code < 300 or response.status_code == 304:
         img = Image.open(BytesIO(response.content))
     else:
-        logger.error(
-            f"Received non-200 response from {image_url}: status_code: {response.status_code}"
-        )
+        logger.error(f"Received non-200 response from {image_url}: status_code: {response.status_code}")
     return img
 
 
@@ -34,7 +36,9 @@ def change_orientation(image, orientation, inverted=False):
     return image.rotate(angle, expand=1)
 
 
-def resize_image(image, desired_size, image_settings=[]):
+def resize_image(image, desired_size, image_settings=None):
+    if image_settings is None:
+        image_settings = []
     img_width, img_height = image.size
     desired_width, desired_height = desired_size
     desired_width, desired_height = int(desired_width), int(desired_height)
@@ -66,9 +70,11 @@ def resize_image(image, desired_size, image_settings=[]):
     return image.resize((desired_width, desired_height), Image.LANCZOS)
 
 
-def apply_image_enhancement(img, image_settings={}):
+def apply_image_enhancement(img, image_settings=None):
     # Convert image to RGB mode if necessary for enhancement operations
     # ImageEnhance requires RGB mode for operations like blend
+    if image_settings is None:
+        image_settings = {}
     if img.mode not in ("RGB", "L"):
         img = img.convert("RGB")
 
@@ -82,9 +88,7 @@ def apply_image_enhancement(img, image_settings={}):
     img = ImageEnhance.Color(img).enhance(image_settings.get("saturation", 1.0))
 
     # Apply Sharpness
-    img = ImageEnhance.Sharpness(img).enhance(image_settings.get("sharpness", 1.0))
-
-    return img
+    return ImageEnhance.Sharpness(img).enhance(image_settings.get("sharpness", 1.0))
 
 
 def compute_image_hash(image):
@@ -108,7 +112,7 @@ def take_screenshot_html(html_str, dimensions, timeout_ms=None):
         os.remove(html_file_path)
 
     except Exception as e:
-        logger.error(f"Failed to take screenshot: {str(e)}")
+        logger.exception(f"Failed to take screenshot: {e!s}")
 
     return image
 
@@ -157,7 +161,7 @@ def take_screenshot(target, dimensions, timeout_ms=None):
         os.remove(img_file_path)
 
     except Exception as e:
-        logger.error(f"Failed to take screenshot: {str(e)}")
+        logger.exception(f"Failed to take screenshot: {e!s}")
 
     return image
 

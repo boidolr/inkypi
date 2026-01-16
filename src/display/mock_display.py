@@ -1,6 +1,7 @@
-import os
 import logging
+import os
 from datetime import datetime
+
 from .abstract_display import AbstractDisplay
 
 logger = logging.getLogger(__name__)
@@ -21,7 +22,9 @@ class MockDisplay(AbstractDisplay):
         """Initialize mock display (no-op for development)."""
         logger.info(f"Mock display initialized: {self.width}x{self.height}")
 
-    def display_image(self, image, image_settings=[]):
+    def display_image(self, image, image_settings=None):
+        if image_settings is None:
+            image_settings = []
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filepath = os.path.join(self.output_dir, f"display_{timestamp}.png")
         image.save(filepath, "PNG")

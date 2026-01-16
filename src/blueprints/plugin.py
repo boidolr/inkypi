@@ -1,17 +1,19 @@
-from flask import (
-    Blueprint,
-    request,
-    jsonify,
-    current_app,
-    render_template,
-    send_from_directory,
-)
-from plugins.plugin_registry import get_plugin_instance
-from utils.app_utils import resolve_path, handle_request_files, parse_form
-from refresh_task import ManualRefresh, PlaylistRefresh
-import json
-import os
 import logging
+import os
+
+from flask import Blueprint
+from flask import current_app
+from flask import jsonify
+from flask import render_template
+from flask import request
+from flask import send_from_directory
+
+from plugins.plugin_registry import get_plugin_instance
+from refresh_task import ManualRefresh
+from refresh_task import PlaylistRefresh
+from utils.app_utils import handle_request_files
+from utils.app_utils import parse_form
+from utils.app_utils import resolve_path
 
 logger = logging.getLogger(__name__)
 plugin_bp = Blueprint("plugin", __name__)
@@ -20,9 +22,7 @@ plugin_bp = Blueprint("plugin", __name__)
 def _delete_plugin_instance_images(device_config, plugin_instance_obj):
     """Delete all images associated with a plugin instance."""
     # Delete the plugin instance's generated image
-    plugin_image_path = os.path.join(
-        device_config.plugin_image_dir, plugin_instance_obj.get_image_path()
-    )
+    plugin_image_path = os.path.join(device_config.plugin_image_dir, plugin_instance_obj.get_image_path())
     if os.path.exists(plugin_image_path):
         try:
             os.remove(plugin_image_path)
@@ -60,9 +60,7 @@ def plugin_page(plugin_id):
             if plugin_instance_name:
                 plugin_instance = playlist_manager.find_plugin(plugin_id, plugin_instance_name)
                 if not plugin_instance:
-                    return jsonify(
-                        {"error": f"Plugin instance: {plugin_instance_name} does not exist"}
-                    ), 500
+                    return jsonify({"error": f"Plugin instance: {plugin_instance_name} does not exist"}), 500
 
                 # add plugin instance settings to the template to prepopulate
                 template_params["plugin_settings"] = plugin_instance.settings
@@ -71,10 +69,9 @@ def plugin_page(plugin_id):
             template_params["playlists"] = playlist_manager.get_playlist_names()
         except Exception as e:
             logger.exception("EXCEPTION CAUGHT: " + str(e))
-            return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+            return jsonify({"error": f"An error occurred: {e!s}"}), 500
         return render_template("plugin.html", plugin=plugin_config, **template_params)
-    else:
-        return "Plugin not found", 404
+    return "Plugin not found", 404
 
 
 @plugin_bp.route("/images/<plugin_id>/<path:filename>")
@@ -106,9 +103,7 @@ def image(plugin_id, filename):
     return send_from_directory(abs_plugin_dir, filename)
 
 
-@plugin_bp.route(
-    "/plugin_instance_image/<path:playlist_name>/<path:plugin_id>/<path:instance_name>"
-)
+@plugin_bp.route("/plugin_instance_image/<path:playlist_name>/<path:plugin_id>/<path:instance_name>")
 def plugin_instance_image(playlist_name, plugin_id, instance_name):
     """Serve the generated image for a plugin instance."""
     device_config = current_app.config["DEVICE_CONFIG"]
@@ -168,7 +163,7 @@ def delete_plugin_instance():
 
     except Exception as e:
         logger.exception("EXCEPTION CAUGHT: " + str(e))
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"An error occurred: {e!s}"}), 500
 
     return jsonify({"success": True, "message": "Deleted plugin instance."})
 
@@ -182,7 +177,8 @@ def update_plugin_instance(instance_name):
         form_data = parse_form(request.form)
 
         if not instance_name:
-            raise RuntimeError("Instance name is required")
+            msg = "Instance name is required"
+            raise RuntimeError(msg)
         plugin_settings = form_data
         plugin_settings.update(handle_request_files(request.files, request.form))
 
@@ -194,7 +190,7 @@ def update_plugin_instance(instance_name):
         plugin_instance.settings = plugin_settings
         device_config.write_config()
     except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"An error occurred: {e!s}"}), 500
     return jsonify({"success": True, "message": f"Updated plugin instance {instance_name}."})
 
 
@@ -212,9 +208,7 @@ def display_plugin_instance():
     try:
         playlist = playlist_manager.get_playlist(playlist_name)
         if not playlist:
-            return jsonify(
-                {"success": False, "message": f"Playlist {playlist_name} not found"}
-            ), 400
+            return jsonify({"success": False, "message": f"Playlist {playlist_name} not found"}), 400
 
         plugin_instance = playlist.find_plugin(plugin_id, plugin_instance_name)
         if not plugin_instance:
@@ -227,7 +221,7 @@ def display_plugin_instance():
 
         refresh_task.manual_update(PlaylistRefresh(playlist, plugin_instance, force=True))
     except Exception as e:
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        return jsonify({"error": f"An error occurred: {e!s}"}), 500
 
     return jsonify({"success": True, "message": "Display updated"}), 200
 
@@ -255,12 +249,10 @@ def update_now():
 
             plugin = get_plugin_instance(plugin_config)
             image = plugin.generate_image(plugin_settings, device_config)
-            display_manager.display_image(
-                image, image_settings=plugin_config.get("image_settings", [])
-            )
+            display_manager.display_image(image, image_settings=plugin_config.get("image_settings", []))
 
     except Exception as e:
-        logger.exception(f"Error in update_now: {str(e)}")
-        return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        logger.exception(f"Error in update_now: {e!s}")
+        return jsonify({"error": f"An error occurred: {e!s}"}), 500
 
     return jsonify({"success": True, "message": "Display updated"}), 200

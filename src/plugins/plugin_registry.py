@@ -1,10 +1,10 @@
 # app_registry.py
 
-import os
 import importlib
 import logging
-from utils.app_utils import resolve_path
 from pathlib import Path
+
+from utils.app_utils import resolve_path
 
 logger = logging.getLogger(__name__)
 PLUGINS_DIR = "plugins"
@@ -21,9 +21,7 @@ def load_plugins(plugins_config):
 
         plugin_dir = plugins_module_path / plugin_id
         if not plugin_dir.is_dir():
-            logging.error(
-                f"Could not find plugin directory {plugin_dir} for '{plugin_id}', skipping."
-            )
+            logging.error(f"Could not find plugin directory {plugin_dir} for '{plugin_id}', skipping.")
             continue
 
         module_path = plugin_dir / f"{plugin_id}.py"
@@ -41,7 +39,7 @@ def load_plugins(plugins_config):
                 PLUGIN_CLASSES[plugin_id] = plugin_class(plugin)
 
         except ImportError as e:
-            logging.error(f"Failed to import plugin module {module_name}: {e}")
+            logging.exception(f"Failed to import plugin module {module_name}: {e}")
 
 
 def get_plugin_instance(plugin_config):
@@ -52,5 +50,5 @@ def get_plugin_instance(plugin_config):
     if plugin_class:
         # Initialize the plugin with its configuration
         return plugin_class
-    else:
-        raise ValueError(f"Plugin '{plugin_id}' is not registered.")
+    msg = f"Plugin '{plugin_id}' is not registered."
+    raise ValueError(msg)

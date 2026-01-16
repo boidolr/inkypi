@@ -1,15 +1,16 @@
-import os
-from utils.app_utils import resolve_path, get_font
-from plugins.base_plugin.base_plugin import BasePlugin
-from plugins.calendar.constants import LOCALE_MAP, FONT_SIZES
-from PIL import Image, ImageColor, ImageDraw, ImageFont
-import icalendar
-import recurring_ical_events
-from io import BytesIO
 import logging
-import requests
-from datetime import datetime, timedelta
+from datetime import datetime
+from datetime import timedelta
+
+import icalendar
 import pytz
+import recurring_ical_events
+import requests
+from PIL import ImageColor
+
+from plugins.base_plugin.base_plugin import BasePlugin
+from plugins.calendar.constants import FONT_SIZES
+from plugins.calendar.constants import LOCALE_MAP
 
 logger = logging.getLogger(__name__)
 
@@ -27,21 +28,25 @@ class Calendar(BasePlugin):
         view = settings.get("viewMode")
 
         if not view:
-            raise RuntimeError("View is required")
-        elif view not in [
+            msg = "View is required"
+            raise RuntimeError(msg)
+        if view not in [
             "timeGridDay",
             "timeGridWeek",
             "dayGrid",
             "dayGridMonth",
             "listMonth",
         ]:
-            raise RuntimeError("Invalid view")
+            msg = "Invalid view"
+            raise RuntimeError(msg)
 
         if not calendar_urls:
-            raise RuntimeError("At least one calendar URL is required")
+            msg = "At least one calendar URL is required"
+            raise RuntimeError(msg)
         for url in calendar_urls:
             if not url.strip():
-                raise RuntimeError("Invalid calendar URL")
+                msg = "Invalid calendar URL"
+                raise RuntimeError(msg)
 
         dimensions = device_config.get_resolution()
         if device_config.get_config("orientation") == "vertical":
@@ -56,7 +61,7 @@ class Calendar(BasePlugin):
         logger.debug(f"Fetching events for {start} --> [{current_dt}] --> {end}")
         events = self.fetch_ics_events(calendar_urls, calendar_colors, tz, start, end)
         if not events:
-            logger.warn("No events found for ics url")
+            logger.warning("No events found for ics url")
 
         if view == "timeGridWeek" and settings.get("displayPreviousDays") != "true":
             view = "timeGrid"
@@ -74,13 +79,14 @@ class Calendar(BasePlugin):
         image = self.render_image(dimensions, "calendar.html", "calendar.css", template_params)
 
         if not image:
-            raise RuntimeError("Failed to take screenshot, please check logs.")
+            msg = "Failed to take screenshot, please check logs."
+            raise RuntimeError(msg)
         return image
 
     def fetch_ics_events(self, calendar_urls, colors, tz, start_range, end_range):
         parsed_events = []
 
-        for calendar_url, color in zip(calendar_urls, colors):
+        for calendar_url, color in zip(calendar_urls, colors, strict=False):
             cal = self.fetch_calendar(calendar_url)
             events = recurring_ical_events.of(cal).between(start_range, end_range)
             contrast_color = self.get_contrast_color(color)
@@ -135,10 +141,7 @@ class Calendar(BasePlugin):
         end = None
         if "dtend" in event:
             dtend = event.decoded("dtend")
-            if isinstance(dtend, datetime):
-                end = dtend.astimezone(tz).isoformat()
-            else:
-                end = dtend.isoformat()
+            end = dtend.astimezone(tz).isoformat() if isinstance(dtend, datetime) else dtend.isoformat()
         elif "duration" in event:
             duration = event.decoded("duration")
             end = (dtstart + duration).isoformat()
@@ -150,7 +153,8 @@ class Calendar(BasePlugin):
             response.raise_for_status()
             return icalendar.Calendar.from_ical(response.text)
         except Exception as e:
-            raise RuntimeError(f"Failed to fetch iCalendar url: {str(e)}")
+            msg = f"Failed to fetch iCalendar url: {e!s}"
+            raise RuntimeError(msg)
 
     def get_contrast_color(self, color):
         """

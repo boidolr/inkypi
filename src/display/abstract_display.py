@@ -28,9 +28,10 @@ class AbstractDisplay:
         Raises:
             NotImplementedError: If not implemented in a subclass.
         """
-        raise NotImplementedError("Method 'initialize_display(...) must be provided in a subclass.")
+        msg = "Method 'initialize_display(...) must be provided in a subclass."
+        raise NotImplementedError(msg)
 
-    def display_image(self, image, image_settings=[]):
+    def display_image(self, image, image_settings=None):
         """
         Abstract method to display an image on the screen.  Implementations of this
         method should handle the device specific operations.
@@ -42,4 +43,5 @@ class AbstractDisplay:
         Raises:
             NotImplementedError: If not implemented in a subclass.
         """
-        raise NotImplementedError("Method 'display_image(...) must be provided in a subclass.")
+        msg = "Method 'display_image(...) must be provided in a subclass."
+        raise NotImplementedError(msg)

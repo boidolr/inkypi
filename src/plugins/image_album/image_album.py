@@ -1,20 +1,21 @@
 import logging
-from random import choice, random
+from io import BytesIO
+from random import choice
 
 import requests
-from PIL import Image, ImageColor, ImageOps
-from io import BytesIO
-
+from PIL import Image
+from PIL import ImageColor
+from PIL import ImageOps
 from PIL.ImageFile import ImageFile
-from plugins.base_plugin.base_plugin import BasePlugin
 
+from plugins.base_plugin.base_plugin import BasePlugin
 from utils.image_utils import pad_image_blur
 
 logger = logging.getLogger(__name__)
 
 
 class ImmichProvider:
-    def __init__(self, base_url: str, key: str, orientation: str):
+    def __init__(self, base_url: str, key: str, orientation: str) -> None:
         self.base_url = base_url
         self.key = key
         self.orientation = orientation
@@ -24,10 +25,11 @@ class ImmichProvider:
         r = requests.get(f"{self.base_url}/api/albums", headers=self.headers)
         r.raise_for_status()
         albums = r.json()
-        album = [a for a in albums if a["albumName"] == album][0]
+        album = next(a for a in albums if a["albumName"] == album)
 
         if album is None:
-            raise RuntimeError(f"Album {album} not found.")
+            msg = f"Album {album} not found."
+            raise RuntimeError(msg)
 
         return album["id"]
 
@@ -38,9 +40,7 @@ class ImmichProvider:
 
         while page_items:
             body = {"albumIds": [album_id], "size": 1000, "page": page}
-            r2 = requests.post(
-                f"{self.base_url}/api/search/metadata", json=body, headers=self.headers
-            )
+            r2 = requests.post(f"{self.base_url}/api/search/metadata", json=body, headers=self.headers)
             r2.raise_for_status()
             assets_data = r2.json()
 
@@ -57,7 +57,7 @@ class ImmichProvider:
             logger.info(f"Getting ids from album id {album_id}")
             asset_ids = self.get_asset_ids(album_id)
         except Exception as e:
-            logger.error(f"Error grabbing image from {self.base_url}: {e}")
+            logger.exception(f"Error grabbing image from {self.base_url}: {e}")
             return None
 
         asset_id = choice(asset_ids)
@@ -66,8 +66,7 @@ class ImmichProvider:
         r = requests.get(f"{self.base_url}/api/assets/{asset_id}/original", headers=self.headers)
         r.raise_for_status()
         img = Image.open(BytesIO(r.content))
-        img = ImageOps.exif_transpose(img)
-        return img
+        return ImageOps.exif_transpose(img)
 
 
 class ImageAlbum(BasePlugin):
@@ -88,23 +87,28 @@ class ImageAlbum(BasePlugin):
             case "Immich":
                 key = device_config.load_env_key("IMMICH_KEY")
                 if not key:
-                    raise RuntimeError("Immich API Key not configured.")
+                    msg = "Immich API Key not configured."
+                    raise RuntimeError(msg)
 
                 url = settings.get("url")
                 if not url:
-                    raise RuntimeError("URL is required.")
+                    msg = "URL is required."
+                    raise RuntimeError(msg)
 
                 album = settings.get("album")
                 if not album:
-                    raise RuntimeError("Album is required.")
+                    msg = "Album is required."
+                    raise RuntimeError(msg)
 
                 provider = ImmichProvider(url, key, orientation)
                 img = provider.get_image(album)
                 if not img:
-                    raise RuntimeError("Failed to load image, please check logs.")
+                    msg = "Failed to load image, please check logs."
+                    raise RuntimeError(msg)
 
         if img is None:
-            raise RuntimeError("Failed to load image, please check logs.")
+            msg = "Failed to load image, please check logs."
+            raise RuntimeError(msg)
 
         if settings.get("padImage") == "true":
             dimensions = device_config.get_resolution()
@@ -114,15 +118,12 @@ class ImageAlbum(BasePlugin):
 
             if settings.get("backgroundOption") == "blur":
                 return pad_image_blur(img, dimensions)
-            else:
-                background_color = ImageColor.getcolor(
-                    settings.get("backgroundColor") or (255, 255, 255), "RGB"
-                )
-                return ImageOps.pad(
-                    img,
-                    dimensions,
-                    color=background_color,
-                    method=Image.Resampling.LANCZOS,
-                )
+            background_color = ImageColor.getcolor(settings.get("backgroundColor") or (255, 255, 255), "RGB")
+            return ImageOps.pad(
+                img,
+                dimensions,
+                color=background_color,
+                method=Image.Resampling.LANCZOS,
+            )
 
         return img

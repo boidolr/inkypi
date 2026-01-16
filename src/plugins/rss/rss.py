@@ -1,10 +1,10 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image
-from io import BytesIO
+import html
+import logging
+
 import feedparser
 import requests
-import logging
-import html
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,8 @@ class Rss(BasePlugin):
         title = settings.get("title")
         feed_url = settings.get("feedUrl")
         if not feed_url:
-            raise RuntimeError("RSS Feed Url is required.")
+            msg = "RSS Feed Url is required."
+            raise RuntimeError(msg)
 
         items = self.parse_rss_feed(feed_url)
 
@@ -37,8 +38,7 @@ class Rss(BasePlugin):
             "plugin_settings": settings,
         }
 
-        image = self.render_image(dimensions, "rss.html", "rss.css", template_params)
-        return image
+        return self.render_image(dimensions, "rss.html", "rss.css", template_params)
 
     def parse_rss_feed(self, url, timeout=10):
         resp = requests.get(url, timeout=timeout, headers={"User-Agent": "Mozilla/5.0"})

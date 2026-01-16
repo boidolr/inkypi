@@ -1,8 +1,9 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image
-from datetime import datetime, timezone
 import logging
+from datetime import datetime
+
 import pytz
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +37,4 @@ class YearProgress(BasePlugin):
             "plugin_settings": settings,
         }
 
-        image = self.render_image(
-            dimensions, "year_progress.html", "year_progress.css", template_params
-        )
-        return image
+        return self.render_image(dimensions, "year_progress.html", "year_progress.css", template_params)

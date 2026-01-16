@@ -1,9 +1,10 @@
 import fnmatch
-import json
 import logging
 
-from utils.image_utils import resize_image, change_orientation, apply_image_enhancement
 from display.mock_display import MockDisplay
+from utils.image_utils import apply_image_enhancement
+from utils.image_utils import change_orientation
+from utils.image_utils import resize_image
 
 logger = logging.getLogger(__name__)
 
@@ -51,9 +52,10 @@ class DisplayManager:
             # see https://github.com/waveshareteam/e-Paper
             self.display = WaveshareDisplay(device_config)
         else:
-            raise ValueError(f"Unsupported display type: {display_type}")
+            msg = f"Unsupported display type: {display_type}"
+            raise ValueError(msg)
 
-    def display_image(self, image, image_settings=[]):
+    def display_image(self, image, image_settings=None):
         """
         Delegates image rendering to the appropriate display instance.
 
@@ -65,8 +67,11 @@ class DisplayManager:
             ValueError: If no valid display instance is found.
         """
 
+        if image_settings is None:
+            image_settings = []
         if not hasattr(self, "display"):
-            raise ValueError("No valid display instance initialized.")
+            msg = "No valid display instance initialized."
+            raise ValueError(msg)
 
         # Save the image
         logger.info(f"Saving image to {self.device_config.current_image_file}")

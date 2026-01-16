@@ -1,8 +1,9 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image
-from datetime import datetime, timezone
 import logging
+from datetime import datetime
+
 import pytz
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +19,8 @@ class Countdown(BasePlugin):
         countdown_date_str = settings.get("date")
 
         if not countdown_date_str:
-            raise RuntimeError("Date is required.")
+            msg = "Date is required."
+            raise RuntimeError(msg)
 
         dimensions = device_config.get_resolution()
         if device_config.get_config("orientation") == "vertical":
@@ -42,5 +44,4 @@ class Countdown(BasePlugin):
             "plugin_settings": settings,
         }
 
-        image = self.render_image(dimensions, "countdown.html", "countdown.css", template_params)
-        return image
+        return self.render_image(dimensions, "countdown.html", "countdown.css", template_params)

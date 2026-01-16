@@ -1,10 +1,12 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image, ImageDraw, ImageFont
-
 import requests
+from PIL import Image
+from PIL import ImageDraw
 
-from .comic_parser import COMICS, get_panel
+from plugins.base_plugin.base_plugin import BasePlugin
 from utils.app_utils import get_font
+
+from .comic_parser import COMICS
+from .comic_parser import get_panel
 
 
 class Comic(BasePlugin):
@@ -16,7 +18,8 @@ class Comic(BasePlugin):
     def generate_image(self, settings, device_config):
         comic = settings.get("comic")
         if not comic or comic not in COMICS:
-            raise RuntimeError("Invalid comic provided.")
+            msg = "Invalid comic provided."
+            raise RuntimeError(msg)
 
         is_caption = settings.get("titleCaption") == "true"
         caption_font_size = settings.get("fontSize")

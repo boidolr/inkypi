@@ -21,15 +21,19 @@ Flow:
 6. Optionally resize the image to fit the device dimensions. (_shrink_to_fit))
 """
 
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image, UnidentifiedImageError
-from io import BytesIO
-import requests
 import logging
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
+from io import BytesIO
 from random import randint
-from datetime import datetime, timedelta, date
-from functools import lru_cache
 from typing import Any
+
+import requests
+from PIL import Image
+from PIL import UnidentifiedImageError
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +48,7 @@ class Wpotd(BasePlugin):
         template_params["style_settings"] = False
         return template_params
 
-    def generate_image(
-        self, settings: dict[str, Any], device_config: dict[str, Any]
-    ) -> Image.Image:
+    def generate_image(self, settings: dict[str, Any], device_config: dict[str, Any]) -> Image.Image:
         logger.info(f"WPOTD plugin settings: {settings}")
         datetofetch = self._determine_date(settings)
         logger.info(f"WPOTD plugin datetofetch: {datetofetch}")
@@ -58,7 +60,8 @@ class Wpotd(BasePlugin):
         image = self._download_image(picurl)
         if image is None:
             logger.error("Failed to download WPOTD image.")
-            raise RuntimeError("Failed to download WPOTD image.")
+            msg = "Failed to download WPOTD image."
+            raise RuntimeError(msg)
         if settings.get("shrinkToFitWpotd") == "true":
             dimensions = device_config.get_resolution()
             if device_config.get_config("orientation") == "vertical":
@@ -74,26 +77,28 @@ class Wpotd(BasePlugin):
             start = datetime(2015, 1, 1)
             delta_days = (datetime.today() - start).days
             return (start + timedelta(days=randint(0, delta_days))).date()
-        elif settings.get("customDate"):
+        if settings.get("customDate"):
             return datetime.strptime(settings["customDate"], "%Y-%m-%d").date()
-        else:
-            return datetime.today().date()
+        return datetime.today().date()
 
     def _download_image(self, url: str) -> Image.Image:
         try:
             if url.lower().endswith(".svg"):
                 logger.warning("SVG format is not supported by Pillow. Skipping image download.")
-                raise RuntimeError("Unsupported image format: SVG.")
+                msg = "Unsupported image format: SVG."
+                raise RuntimeError(msg)
 
             response = self.SESSION.get(url, headers=self.HEADERS, timeout=10)
             response.raise_for_status()
             return Image.open(BytesIO(response.content))
         except UnidentifiedImageError as e:
-            logger.error(f"Unsupported image format at {url}: {str(e)}")
-            raise RuntimeError("Unsupported image format.")
+            logger.exception(f"Unsupported image format at {url}: {e!s}")
+            msg = "Unsupported image format."
+            raise RuntimeError(msg)
         except Exception as e:
-            logger.error(f"Failed to load WPOTD image from {url}: {str(e)}")
-            raise RuntimeError("Failed to load WPOTD image.")
+            logger.exception(f"Failed to load WPOTD image from {url}: {e!s}")
+            msg = "Failed to load WPOTD image."
+            raise RuntimeError(msg)
 
     def _fetch_potd(self, cur_date: date) -> dict[str, Any]:
         title = f"Template:POTD/{cur_date.isoformat()}"
@@ -109,8 +114,9 @@ class Wpotd(BasePlugin):
         try:
             filename = data["query"]["pages"][0]["images"][0]["title"]
         except (KeyError, IndexError) as e:
-            logger.error(f"Failed to retrieve POTD filename for {cur_date}: {e}")
-            raise RuntimeError("Failed to retrieve POTD filename.")
+            logger.exception(f"Failed to retrieve POTD filename for {cur_date}: {e}")
+            msg = "Failed to retrieve POTD filename."
+            raise RuntimeError(msg)
 
         image_src = self._fetch_image_src(filename)
 
@@ -134,19 +140,19 @@ class Wpotd(BasePlugin):
             page = next(iter(data["query"]["pages"].values()))
             return page["imageinfo"][0]["url"]
         except (KeyError, IndexError, StopIteration) as e:
-            logger.error(f"Failed to retrieve image URL for {filename}: {e}")
-            raise RuntimeError("Failed to retrieve image URL.")
+            logger.exception(f"Failed to retrieve image URL for {filename}: {e}")
+            msg = "Failed to retrieve image URL."
+            raise RuntimeError(msg)
 
     def _make_request(self, params: dict[str, Any]) -> dict[str, Any]:
         try:
-            response = self.SESSION.get(
-                self.API_URL, params=params, headers=self.HEADERS, timeout=10
-            )
+            response = self.SESSION.get(self.API_URL, params=params, headers=self.HEADERS, timeout=10)
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            logger.error(f"Wikipedia API request failed with params {params}: {str(e)}")
-            raise RuntimeError("Wikipedia API request failed.")
+            logger.exception(f"Wikipedia API request failed with params {params}: {e!s}")
+            msg = "Wikipedia API request failed."
+            raise RuntimeError(msg)
 
     def _shrink_to_fit(self, image: Image.Image, max_width: int, max_height: int) -> Image.Image:
         """
@@ -164,19 +170,17 @@ class Wpotd(BasePlugin):
                     new_height = int(orig_height * max_width / orig_width)
                 else:
                     new_width, new_height = orig_width, orig_height
+            # Portrait -> constrain by max_height
+            elif orig_height > max_height:
+                new_height = max_height
+                new_width = int(orig_width * max_height / orig_height)
             else:
-                # Portrait -> constrain by max_height
-                if orig_height > max_height:
-                    new_height = max_height
-                    new_width = int(orig_width * max_height / orig_height)
-                else:
-                    new_width, new_height = orig_width, orig_height
+                new_width, new_height = orig_width, orig_height
             # Resize using high-quality resampling
             image = image.resize((new_width, new_height), Image.LANCZOS)
             # Create a new image with white background and paste the resized image in the center
             new_image = Image.new("RGB", (max_width, max_height), (255, 255, 255))
             new_image.paste(image, ((max_width - new_width) // 2, (max_height - new_height) // 2))
             return new_image
-        else:
-            # If the image is already within bounds, return it as is
-            return image
+        # If the image is already within bounds, return it as is
+        return image

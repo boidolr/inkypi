@@ -1,12 +1,12 @@
-import inspect
 import importlib
+import inspect
 import logging
 import sys
+from pathlib import Path
+
+from PIL import Image
 
 from display.abstract_display import AbstractDisplay
-from PIL import Image
-from pathlib import Path
-from plugins.plugin_registry import get_plugin_instance
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +59,8 @@ class WaveshareDisplay(AbstractDisplay):
         logger.info(f"Loading EPD display for {display_type} display")
 
         if not display_type:
-            raise ValueError("Waveshare driver but 'display_type' not specified in configuration.")
+            msg = "Waveshare driver but 'display_type' not specified in configuration."
+            raise ValueError(msg)
 
         # Construct module path dynamically - e.g. "display.waveshare_epd.epd7in3e"
         module_name = f"display.waveshare_epd.{display_type}"
@@ -74,21 +75,21 @@ class WaveshareDisplay(AbstractDisplay):
             epd_module = importlib.import_module(module_name)
             self.epd_display = epd_module.EPD()
             # Workaround for init functions with inconsistent casing
-            self.epd_display_init = getattr(
-                self.epd_display, "Init", getattr(self.epd_display, "init", None)
-            )
+            self.epd_display_init = getattr(self.epd_display, "Init", getattr(self.epd_display, "init", None))
 
             if not callable(self.epd_display_init):
-                raise AttributeError("No Init/init method found")
+                msg = "No Init/init method found"
+                raise AttributeError(msg)
 
             self.epd_display_init()
 
             display_args_spec = inspect.getfullargspec(self.epd_display.display)
-            display_args = display_args_spec.args
         except ModuleNotFoundError:
-            raise ValueError(f"Unsupported Waveshare display type: {display_type}")
+            msg = f"Unsupported Waveshare display type: {display_type}"
+            raise ValueError(msg)
         except AttributeError:
-            raise ValueError(f"Display does not support required methods: {display_type}")
+            msg = f"Display does not support required methods: {display_type}"
+            raise ValueError(msg)
 
         self.bi_color_display = len(display_args_spec.args) > 2
 
@@ -98,7 +99,7 @@ class WaveshareDisplay(AbstractDisplay):
             resolution = [w, h] if w >= h else [h, w]
             self.device_config.update_value("resolution", resolution, write=True)
 
-    def display_image(self, image, image_settings=[]):
+    def display_image(self, image, image_settings=None):
         """
         Displays an image on the Waveshare display.
 
@@ -113,9 +114,12 @@ class WaveshareDisplay(AbstractDisplay):
             ValueError: If no image is provided.
         """
 
+        if image_settings is None:
+            image_settings = []
         logger.info("Displaying image to Waveshare display.")
         if not image:
-            raise ValueError(f"No image provided.")
+            msg = "No image provided."
+            raise ValueError(msg)
 
         # Assume device was in sleep mode.
         self.epd_display_init()

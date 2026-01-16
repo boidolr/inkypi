@@ -1,7 +1,7 @@
-import feedparser
 import html
 import re
 
+import feedparser
 
 COMICS = {
     "XKCD": {
@@ -51,9 +51,7 @@ COMICS = {
         "element": lambda feed: feed.entries[0].description,
         "url": lambda element: re.search(r'<img[^>]+src=["\"]([^"\"]+)["\"]', element).group(1),
         "title": lambda feed: feed.entries[0].title,
-        "caption": lambda element: re.search(r'title="(.*?)" />', element.replace("\n", "")).group(
-            1
-        ),
+        "caption": lambda element: re.search(r'title="(.*?)" />', element.replace("\n", "")).group(1),
     },
     "webcomic name": {
         "feed": "https://webcomicname.com/rss",
@@ -70,7 +68,8 @@ def get_panel(comic_name):
     try:
         element = COMICS[comic_name]["element"](feed)
     except IndexError:
-        raise RuntimeError("Failed to retrieve latest comic.")
+        msg = "Failed to retrieve latest comic."
+        raise RuntimeError(msg)
 
     return {
         "image_url": COMICS[comic_name]["url"](element),

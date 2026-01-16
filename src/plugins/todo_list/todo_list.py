@@ -1,8 +1,6 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image
-from io import BytesIO
-import requests
 import logging
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +19,7 @@ class TodoList(BasePlugin):
             dimensions = dimensions[::-1]
 
         lists = []
-        for title, raw_list in zip(settings["list-title[]"], settings["list[]"]):
+        for title, raw_list in zip(settings["list-title[]"], settings["list[]"], strict=False):
             elements = [line for line in raw_list.split("\n") if line.strip()]
             lists.append({"title": title, "elements": elements})
 
@@ -33,5 +31,4 @@ class TodoList(BasePlugin):
             "plugin_settings": settings,
         }
 
-        image = self.render_image(dimensions, "todo_list.html", "todo_list.css", template_params)
-        return image
+        return self.render_image(dimensions, "todo_list.html", "todo_list.css", template_params)

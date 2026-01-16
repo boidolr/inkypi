@@ -1,14 +1,9 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from utils.app_utils import resolve_path
-from openai import OpenAI
-from PIL import Image, ImageDraw, ImageFont
-from utils.image_utils import resize_image
-from io import BytesIO
-from datetime import datetime
-import requests
 import logging
-import textwrap
-import os
+from datetime import datetime
+
+from openai import OpenAI
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -27,24 +22,28 @@ class AIText(BasePlugin):
     def generate_image(self, settings, device_config):
         api_key = device_config.load_env_key("OPEN_AI_SECRET")
         if not api_key:
-            raise RuntimeError("OPEN AI API Key not configured.")
+            msg = "OPEN AI API Key not configured."
+            raise RuntimeError(msg)
 
         title = settings.get("title")
 
         text_model = settings.get("textModel")
         if not text_model:
-            raise RuntimeError("Text Model is required.")
+            msg = "Text Model is required."
+            raise RuntimeError(msg)
 
         text_prompt = settings.get("textPrompt", "")
         if not text_prompt.strip():
-            raise RuntimeError("Text Prompt is required.")
+            msg = "Text Prompt is required."
+            raise RuntimeError(msg)
 
         try:
             ai_client = OpenAI(api_key=api_key)
             prompt_response = AIText.fetch_text_prompt(ai_client, text_model, text_prompt)
         except Exception as e:
-            logger.error(f"Failed to make Open AI request: {str(e)}")
-            raise RuntimeError("Open AI request failure, please check logs.")
+            logger.exception(f"Failed to make Open AI request: {e!s}")
+            msg = "Open AI request failure, please check logs."
+            raise RuntimeError(msg)
 
         dimensions = device_config.get_resolution()
         if device_config.get_config("orientation") == "vertical":
@@ -56,9 +55,7 @@ class AIText(BasePlugin):
             "plugin_settings": settings,
         }
 
-        image = self.render_image(dimensions, "ai_text.html", "ai_text.css", image_template_params)
-
-        return image
+        return self.render_image(dimensions, "ai_text.html", "ai_text.css", image_template_params)
 
     @staticmethod
     def fetch_text_prompt(ai_client, model, text_prompt):

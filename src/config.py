@@ -1,8 +1,11 @@
-import os
 import json
 import logging
+import os
+
 from dotenv import load_dotenv
-from model import PlaylistManager, RefreshInfo
+
+from model import PlaylistManager
+from model import RefreshInfo
 
 logger = logging.getLogger(__name__)
 
@@ -61,8 +64,10 @@ class Config:
         with open(self.config_file, "w") as outfile:
             json.dump(self.config, outfile, indent=4)
 
-    def get_config(self, key=None, default={}):
+    def get_config(self, key=None, default=None):
         """Gets the value of a specific configuration key or returns the entire config if none provided."""
+        if default is None:
+            default = {}
         if key is not None:
             return self.config.get(key, default)
         return self.config

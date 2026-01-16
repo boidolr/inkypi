@@ -1,9 +1,12 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from datetime import datetime, timedelta
-from utils.image_utils import get_image
-from PIL import Image
 import logging
+from datetime import datetime
+from datetime import timedelta
+
+from PIL import Image
+
+from plugins.base_plugin.base_plugin import BasePlugin
 from plugins.newspaper.constants import NEWSPAPERS
+from utils.image_utils import get_image
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +18,8 @@ class Newspaper(BasePlugin):
         newspaper_slug = settings.get("newspaperSlug")
 
         if not newspaper_slug:
-            raise RuntimeError("Newspaper input not provided.")
+            msg = "Newspaper input not provided."
+            raise RuntimeError(msg)
         newspaper_slug = newspaper_slug.upper()
 
         # Get today's date
@@ -51,7 +55,8 @@ class Newspaper(BasePlugin):
                 new_image.paste(image, (0, 0))
                 image = new_image
         else:
-            raise RuntimeError("Newspaper front cover not found.")
+            msg = "Newspaper front cover not found."
+            raise RuntimeError(msg)
 
         return image
 

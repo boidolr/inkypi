@@ -5,7 +5,7 @@ from src.model import Playlist
 
 class TestPlaylist:
     @pytest.mark.parametrize(
-        "start,end,current,expected,priority",
+        ("start", "end", "current", "expected", "priority"),
         [
             # --- Non-wrapping cases 09:00 <-> 15:00 ---
             ("09:00", "15:00", "08:59", False, 360),  # just before start

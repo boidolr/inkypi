@@ -1,11 +1,14 @@
 import logging
 import os
-from utils.app_utils import resolve_path, get_fonts
-from utils.image_utils import take_screenshot_html
-from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
-import asyncio
-import base64
+
+from jinja2 import Environment
+from jinja2 import FileSystemLoader
+from jinja2 import select_autoescape
+
+from utils.app_utils import get_fonts
+from utils.app_utils import resolve_path
+from utils.image_utils import take_screenshot_html
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +38,8 @@ class BasePlugin:
             self.env = Environment(loader=loader, autoescape=select_autoescape(["html", "xml"]))
 
     def generate_image(self, settings, device_config):
-        raise NotImplementedError("generate_image must be implemented by subclasses")
+        msg = "generate_image must be implemented by subclasses"
+        raise NotImplementedError(msg)
 
     def cleanup(self, settings):
         """Optional cleanup method that plugins can override to delete associated resources.
@@ -46,7 +50,7 @@ class BasePlugin:
         Args:
             settings: The plugin instance's settings dict, which may contain file paths or other resources
         """
-        pass  # Default implementation does nothing
+        # Default implementation does nothing
 
     def get_plugin_id(self):
         return self.config.get("id")
@@ -67,8 +71,10 @@ class BasePlugin:
         template_params["frame_styles"] = FRAME_STYLES
         return template_params
 
-    def render_image(self, dimensions, html_file, css_file=None, template_params={}):
+    def render_image(self, dimensions, html_file, css_file=None, template_params=None):
         # load the base plugin and current plugin css files
+        if template_params is None:
+            template_params = {}
         css_files = [os.path.join(BASE_PLUGIN_RENDER_DIR, "plugin.css")]
         if css_file:
             plugin_css = os.path.join(self.render_dir, css_file)

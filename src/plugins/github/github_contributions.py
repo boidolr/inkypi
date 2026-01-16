@@ -1,6 +1,9 @@
-import requests
 import logging
-from datetime import datetime, date, timedelta
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
+
+import requests
 
 logger = logging.getLogger(__name__)
 
@@ -30,12 +33,14 @@ def contributions_generate_image(plugin_instance, settings, device_config):
 
     api_key = device_config.load_env_key("GITHUB_SECRET")
     if not api_key:
-        raise RuntimeError("GitHub API Key not configured.")
+        msg = "GitHub API Key not configured."
+        raise RuntimeError(msg)
 
     colors = settings.get("contributionColor[]")
     github_username = settings.get("githubUsername")
     if not github_username:
-        raise RuntimeError("GitHub username is required.")
+        msg = "GitHub username is required."
+        raise RuntimeError(msg)
 
     data = fetch_contributions(github_username, api_key)
     grid, month_positions = parse_contributions(data, colors)
@@ -49,9 +54,7 @@ def contributions_generate_image(plugin_instance, settings, device_config):
         "plugin_settings": settings,
     }
 
-    return plugin_instance.render_image(
-        dimensions, "github_contributions.html", "github.css", template_params
-    )
+    return plugin_instance.render_image(dimensions, "github_contributions.html", "github.css", template_params)
 
 
 # -------------------------
@@ -63,9 +66,7 @@ def fetch_contributions(username, api_key):
     url = "https://api.github.com/graphql"
     headers = {"Authorization": f"Bearer {api_key}"}
     variables = {"username": username}
-    resp = requests.post(
-        url, json={"query": GRAPHQL_QUERY, "variables": variables}, headers=headers
-    )
+    resp = requests.post(url, json={"query": GRAPHQL_QUERY, "variables": variables}, headers=headers)
     resp.raise_for_status()
     return resp.json()
 
@@ -73,7 +74,7 @@ def fetch_contributions(username, api_key):
 def parse_contributions(data, colors):
     weeks = data["data"]["user"]["contributionsCollection"]["contributionCalendar"]["weeks"]
 
-    grid = [[day for day in week["contributionDays"]] for week in weeks]
+    grid = [list(week["contributionDays"]) for week in weeks]
     max_contrib = max(day["contributionCount"] for week in grid for day in week)
 
     def get_color(count):

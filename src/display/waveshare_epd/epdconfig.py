@@ -27,12 +27,11 @@
 # THE SOFTWARE.
 #
 
-import os
 import logging
+import os
+import subprocess
 import sys
 import time
-import subprocess
-
 from ctypes import *
 
 logger = logging.getLogger(__name__)
@@ -49,8 +48,8 @@ class RaspberryPi:
     SCLK_PIN = 11
 
     def __init__(self):
-        import spidev
         import gpiozero
+        import spidev
 
         self.SPI = spidev.SpiDev()
         self.GPIO_RST_PIN = gpiozero.LED(self.RST_PIN)
@@ -84,14 +83,15 @@ class RaspberryPi:
     def digital_read(self, pin):
         if pin == self.BUSY_PIN:
             return self.GPIO_BUSY_PIN.value
-        elif pin == self.RST_PIN:
+        if pin == self.RST_PIN:
             return self.RST_PIN.value
-        elif pin == self.DC_PIN:
+        if pin == self.DC_PIN:
             return self.DC_PIN.value
         # elif pin == self.CS_PIN:
         #     return self.CS_PIN.value
-        elif pin == self.PWR_PIN:
+        if pin == self.PWR_PIN:
             return self.PWR_PIN.value
+        return None
 
     def delay_ms(self, delaytime):
         time.sleep(delaytime / 1000.0)
@@ -132,7 +132,8 @@ class RaspberryPi:
                     self.DEV_SPI = CDLL(so_filename)
                     break
             if self.DEV_SPI is None:
-                RuntimeError("Cannot find DEV_Config.so")
+                msg = "Cannot find DEV_Config.so"
+                raise RuntimeError(msg)
 
             self.DEV_SPI.DEV_Module_Init()
 
@@ -183,7 +184,8 @@ class JetsonNano:
                 self.SPI = ctypes.cdll.LoadLibrary(so_filename)
                 break
         if self.SPI is None:
-            raise RuntimeError("Cannot find sysfs_software_spi.so")
+            msg = "Cannot find sysfs_software_spi.so"
+            raise RuntimeError(msg)
 
         import Jetson.GPIO
 
@@ -241,8 +243,8 @@ class SunriseX3:
     Flag = 0
 
     def __init__(self):
-        import spidev
         import Hobot.GPIO
+        import spidev
 
         self.GPIO = Hobot.GPIO
         self.SPI = spidev.SpiDev()
@@ -282,8 +284,7 @@ class SunriseX3:
             self.SPI.max_speed_hz = 4000000
             self.SPI.mode = 0b00
             return 0
-        else:
-            return 0
+        return 0
 
     def module_exit(self):
         logger.debug("spi end")

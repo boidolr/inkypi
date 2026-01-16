@@ -1,9 +1,12 @@
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image, ImageOps, ImageColor
 import logging
 import os
 import random
 
+from PIL import Image
+from PIL import ImageColor
+from PIL import ImageOps
+
+from plugins.base_plugin.base_plugin import BasePlugin
 from utils.image_utils import pad_image_blur
 
 logger = logging.getLogger(__name__)
@@ -23,7 +26,7 @@ def list_files_in_folder(folder_path):
         ".heic",
     )
     image_files = []
-    for root, dirs, files in os.walk(folder_path):
+    for root, _dirs, files in os.walk(folder_path):
         for f in files:
             if f.lower().endswith(image_extensions) and not f.startswith("."):
                 image_files.append(os.path.join(root, f))
@@ -35,13 +38,16 @@ class ImageFolder(BasePlugin):
     def generate_image(self, settings, device_config):
         folder_path = settings.get("folder_path")
         if not folder_path:
-            raise RuntimeError("Folder path is required.")
+            msg = "Folder path is required."
+            raise RuntimeError(msg)
 
         if not os.path.exists(folder_path):
-            raise RuntimeError(f"Folder does not exist: {folder_path}")
+            msg = f"Folder does not exist: {folder_path}"
+            raise RuntimeError(msg)
 
         if not os.path.isdir(folder_path):
-            raise RuntimeError(f"Path is not a directory: {folder_path}")
+            msg = f"Path is not a directory: {folder_path}"
+            raise RuntimeError(msg)
 
         dimensions = device_config.get_resolution()
         if device_config.get_config("orientation") == "vertical":
@@ -51,7 +57,8 @@ class ImageFolder(BasePlugin):
 
         image_files = list_files_in_folder(folder_path)
         if not image_files:
-            raise RuntimeError(f"No image files found in folder: {folder_path}")
+            msg = f"No image files found in folder: {folder_path}"
+            raise RuntimeError(msg)
 
         image_url = random.choice(image_files)
         logger.info(f"Random image selected {image_url}")
@@ -65,9 +72,7 @@ class ImageFolder(BasePlugin):
                 if settings.get("backgroundOption", "blur") == "blur":
                     img = pad_image_blur(img, dimensions)
                 else:
-                    background_color = ImageColor.getcolor(
-                        settings.get("backgroundColor") or (255, 255, 255), "RGB"
-                    )
+                    background_color = ImageColor.getcolor(settings.get("backgroundColor") or (255, 255, 255), "RGB")
                     img = ImageOps.pad(
                         img,
                         dimensions,
@@ -76,9 +81,10 @@ class ImageFolder(BasePlugin):
                     )
 
         except Exception as e:
-            logger.error(f"Error loading image from {image_url}: {e}")
+            logger.exception(f"Error loading image from {image_url}: {e}")
 
         if not img:
-            raise RuntimeError("Failed to load image, please check logs.")
+            msg = "Failed to load image, please check logs."
+            raise RuntimeError(msg)
 
         return img

@@ -5,13 +5,16 @@ and displays it on the InkyPi device. It supports optional manual date selection
 For the API key, set `NASA_SECRET={API_KEY}` in your .env file.
 """
 
-from plugins.base_plugin.base_plugin import BasePlugin
-from PIL import Image
-from io import BytesIO
-import requests
 import logging
+from datetime import datetime
+from datetime import timedelta
+from io import BytesIO
 from random import randint
-from datetime import datetime, timedelta
+
+import requests
+from PIL import Image
+
+from plugins.base_plugin.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +35,8 @@ class Apod(BasePlugin):
 
         api_key = device_config.load_env_key("NASA_SECRET")
         if not api_key:
-            raise RuntimeError("NASA API Key not configured.")
+            msg = "NASA API Key not configured."
+            raise RuntimeError(msg)
 
         params = {"api_key": api_key}
 
@@ -49,12 +53,14 @@ class Apod(BasePlugin):
 
         if response.status_code != 200:
             logger.error(f"NASA API error: {response.text}")
-            raise RuntimeError("Failed to retrieve NASA APOD.")
+            msg = "Failed to retrieve NASA APOD."
+            raise RuntimeError(msg)
 
         data = response.json()
 
         if data.get("media_type") != "image":
-            raise RuntimeError("APOD is not an image today.")
+            msg = "APOD is not an image today."
+            raise RuntimeError(msg)
 
         image_url = data.get("hdurl") or data.get("url")
 
@@ -62,7 +68,8 @@ class Apod(BasePlugin):
             img_data = requests.get(image_url)
             image = Image.open(BytesIO(img_data.content))
         except Exception as e:
-            logger.error(f"Failed to load APOD image: {str(e)}")
-            raise RuntimeError("Failed to load APOD image.")
+            logger.exception(f"Failed to load APOD image: {e!s}")
+            msg = "Failed to load APOD image."
+            raise RuntimeError(msg)
 
         return image
