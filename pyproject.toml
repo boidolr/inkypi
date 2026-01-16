@@ -11,7 +11,6 @@ license = {text = "GPL-3.0"}
 dependencies = [
     "flask==3.1.2",
     "python-dotenv==1.2.1",
-    "inky==2.2.1",
     "requests==2.32.5",
     "urllib3==2.6.3",
     "werkzeug==3.1.5",
@@ -23,7 +22,6 @@ dependencies = [
     "icalendar==6.3.2",
     "recurring-ical-events==3.8.0",
     "psutil==7.2.1",
-    "cysystemd==2.0.1",
     "waitress==3.0.2",
     "feedparser==6.0.12",
     "astral>=3.1",
@@ -39,6 +37,9 @@ waveshare = [
     "gpiozero==2.0.1",
     "lgpio==0.2.2.0",
     "RPi.GPIO==0.7.1",
+]
+inky = [
+    "inky==2.2.1",
 ]
 
 [project.scripts]

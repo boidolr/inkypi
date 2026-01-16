@@ -1,7 +1,5 @@
 import logging
 
-from inky.auto import auto
-
 from display.abstract_display import AbstractDisplay
 
 logger = logging.getLogger(__name__)
@@ -26,6 +24,7 @@ class InkyDisplay(AbstractDisplay):
         Raises:
             ValueError: If the resolution cannot be retrieved or stored.
         """
+        from inky.auto import auto
 
         self.inky_display = auto()
         self.inky_display.set_border(self.inky_display.BLACK)

@@ -207,10 +207,10 @@ create_venv(){
   echo "Creating python virtual environment. "
   if [[ -n "$WS_TYPE" ]]; then
     echo "Installing with waveshare extras."
-    uv --directory "$INSTALL_PATH" sync --python 3.13 --extra waveshare inkypi -qq > /dev/null &
+    uv --directory "$INSTALL_PATH" sync --python 3.14 --extra plugins --extra waveshare -qq > /dev/null &
     show_loader "\tInstalling python dependencies with waveshare support. "
   else
-    uv --directory "$INSTALL_PATH" sync --python 3.13 -qq > /dev/null &
+    uv --directory "$INSTALL_PATH" sync --python 3.14 --extra plugins --extra inky -qq > /dev/null &
     show_loader "\tInstalling python dependencies. "
   fi
 }
