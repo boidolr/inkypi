@@ -3,11 +3,13 @@
 ## InkyPi Service not running
 
 Check the status of the service:
+
 ```bash
 sudo systemctl status inkypi.service
 ```
 
 If the service is running, this should output `Active: active (running)`:
+
 ```bash
 ● inkypi.service - InkyPi App
      Loaded: loaded (/etc/systemd/system/inkypi.service; enabled; preset: enabled)
@@ -25,11 +27,13 @@ If the service is not running, check the logs for any errors or issues.
 ## Debugging
 
 View the latest logs for the InkyPi service:
+
 ```bash
 journalctl -u inkypi -n 100
 ```
 
 Tail the logs:
+
 ```bash
 journalctl -u inkypi -f
 ```
@@ -39,7 +43,6 @@ journalctl -u inkypi -f
 ```bash
 sudo systemctl restart inkypi.service
 ```
-
 
 ## Run InkyPi Manually
 
@@ -75,6 +78,7 @@ RuntimeError: No EEPROM detected! You must manually initialise your Inky board.
 InkyPi uses the [inky python library](https://github.com/pimoroni/inky) from Pimoroni to detect and interface with Inky displays. However, the auto-detect functionality does not work on some boards, which requires manual setup (see [Manual Setup](https://github.com/pimoroni/inky?tab=readme-ov-file#manual-setup)).
 
 Manually import and instantiate the correct Inky module in src/display_manager.py. For the 7.3 Inky Impression, modify the file as follows:
+
 ```
 @@ -1,5 +1,5 @@
  import os
@@ -93,6 +97,7 @@ Manually import and instantiate the correct Inky module in src/display_manager.p
 ```
 
 Then restart the inkypi service:
+
 ```
 sudo systemctl restart inkypi.service
 ```
@@ -101,7 +106,7 @@ sudo systemctl restart inkypi.service
 
 ### Missing modules
 
-Ensure that the necessary modeules are available in the python environment. Waveshare requires:
+Ensure that the necessary modules are available in the python environment. Waveshare requires:
 
 - gpiozero
 - lgpio
@@ -111,35 +116,40 @@ in addition to the libraries that are normally installed for Inky screens.
 
 ### Screen not updating
 
-Verify SPI configuration using `ls /dev/sp*`.  There should be two entries for _spidev0.0_ and _spidev0.1_.  
+Verify SPI configuration using `ls /dev/sp*`. There should be two entries for _spidev0.0_ and _spidev0.1_.
 
-If only the first is visible, check _/boot/firmware/config.txt_. The regular install of InkyPi adds `dtoverlay=spi0-0cs` to the this file.  If it is there, either delete it (for default behaviour) or specifically add `dtoverlay=spi0-2cs`.
+If only the first is visible, check _/boot/firmware/config.txt_. The regular install of InkyPi adds `dtoverlay=spi0-0cs` to the this file. If it is there, either delete it (for default behaviour) or specifically add `dtoverlay=spi0-2cs`.
 
 ### ERROR: Failed to download Waveshare driver
 
 The installation script attempts to fetch the EPD driver library based on the -W argument provided. Please double-check that:
+
 - You’ve entered the correct display model.
 - The corresponding driver file exists in the [waveshare e-Paper github repository](https://github.com/waveshareteam/e-Paper/tree/master/RaspberryPi_JetsonNano/python/lib/waveshare_epd).
 
 Note: Some displays, such as the epd4in0e, are not included in the main library path above. Instead, they may be located under the [E-paper_Seperate_Program](https://github.com/waveshareteam/e-Paper/tree/master/E-paper_Separate_Program) path. If your model is there, look under:
+
 ```bash
 /RaspberryPi_JetsonNano/python/lib/waveshare_epd/
 ```
 
 In this case, you’ll need to manually copy both the epdXinX.py and epdconfig.py files into:
+
 ```bash
 InkyPi/src/display/waveshare_epd/
 ```
 
 For example, to copy the driver and epdconfig files for epd13in3E (Waveshare Spectra 6 (E6) Full Color 13.3 inch display):
+
 ```bash
 cd InkyPi/src/display/waveshare_epd/
 curl -L -O https://raw.githubusercontent.com/waveshareteam/e-Paper/refs/heads/master/E-paper_Separate_Program/13.3inch_e-Paper_E/RaspberryPi/python/lib/epd13in3E.py
 curl -L -O https://raw.githubusercontent.com/waveshareteam/e-Paper/refs/heads/master/E-paper_Separate_Program/13.3inch_e-Paper_E/RaspberryPi/python/lib/epdconfig.py
 ```
 
-Additionally, you'll need the DEV_config* files in the same directory for your system. If you don’t know which file applies to your hardware, you can download all available DEV config files.
+Additionally, you'll need the DEV_config\* files in the same directory for your system. If you don’t know which file applies to your hardware, you can download all available DEV config files.
 For example, for the epd13in3E display & Pi Zero 2 W, pull the following file:
+
 ```bash
 curl -L -O https://raw.githubusercontent.com/waveshareteam/e-Paper/refs/heads/master/E-paper_Separate_Program/13.3inch_e-Paper_E/RaspberryPi/python/lib/DEV_Config_64_b.so
 ```
@@ -161,18 +171,23 @@ Due to limitations with the Pi Zero W, there are some known issues during the In
 ### Pip Installation Error
 
 #### Error message
+
 ```bash
 WARNING: Retrying (Retry(total=4, connect=None, read=None, redirect=None, status=None)) after connection broken by 'ProtocolError('Connection aborted.', RemoteDisconnected('Remote end closed connection without response'))':
 ```
 
 #### Recommended solution
+
 Manually install the required pip packages in the inkypi virtual environment:
+
 ```bash
 source "/usr/local/inkypi/venv_inkypi/bin/activate"
 pip install -r install/requirements.txt
 deactivate
 ```
+
 Restart the inkypi service to apply the changes:
+
 ```bash
 sudo systemctl restart inkypi.service
 ```
@@ -180,6 +195,7 @@ sudo systemctl restart inkypi.service
 ### Numpy ImportError
 
 #### Error message
+
 ```bash
 ImportError: Error importing numpy: you should not try to import numpy from
 its source directory; please exit the numpy source tree, and relaunch
@@ -187,7 +203,9 @@ your python interpreter from there.
 ```
 
 #### Recommended solution
+
 To resolve this issue, manually reinstall the Pillow library in the inkypi virtual environment:
+
 ```bash
 sudo su
 source "/usr/local/inkypi/venv_inkypi/bin/activate"
@@ -197,6 +215,7 @@ deactivate
 ```
 
 Restart the inkypi service to apply the changes:
+
 ```bash
 sudo systemctl restart inkypi.service
 ```
