@@ -76,17 +76,17 @@ def apply_image_enhancement(img, image_settings=None):
     if img.mode not in ("RGB", "L"):
         img = img.convert("RGB")
 
+    # Apply Saturation (Color)
+    img = ImageEnhance.Color(img).enhance(image_settings.get("saturation", 1.8))
+
+    # Apply Contrast
+    img = ImageEnhance.Contrast(img).enhance(image_settings.get("contrast", 1.3))
+
     # Apply Brightness
     img = ImageEnhance.Brightness(img).enhance(image_settings.get("brightness", 1.0))
 
-    # Apply Contrast
-    img = ImageEnhance.Contrast(img).enhance(image_settings.get("contrast", 1.0))
-
-    # Apply Saturation (Color)
-    img = ImageEnhance.Color(img).enhance(image_settings.get("saturation", 1.0))
-
     # Apply Sharpness
-    return ImageEnhance.Sharpness(img).enhance(image_settings.get("sharpness", 1.0))
+    return ImageEnhance.Sharpness(img).enhance(image_settings.get("sharpness", 1.2))
 
 
 def compute_image_hash(image):
