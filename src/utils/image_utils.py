@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_image(image_url: str) -> Image.Image | None:
-    response = requests.get(image_url)
+    response = requests.get(image_url, timeout=30)
     if 200 <= response.status_code < 300 or response.status_code == 304:
         return Image.open(BytesIO(response.content))
     logger.error(f"Received non-200 response from {image_url}: status_code: {response.status_code}")

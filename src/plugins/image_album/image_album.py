@@ -21,7 +21,7 @@ class ImmichProvider:
         self.headers = {"x-api-key": self.key}
 
     def get_album_id(self, album: str) -> str:
-        r = requests.get(f"{self.base_url}/api/albums", headers=self.headers)
+        r = requests.get(f"{self.base_url}/api/albums", headers=self.headers, timeout=30)
         r.raise_for_status()
         albums = r.json()
         album = next(a for a in albums if a["albumName"] == album)
@@ -39,7 +39,7 @@ class ImmichProvider:
 
         while page_items:
             body = {"albumIds": [album_id], "size": 1000, "page": page}
-            r2 = requests.post(f"{self.base_url}/api/search/metadata", json=body, headers=self.headers)
+            r2 = requests.post(f"{self.base_url}/api/search/metadata", json=body, headers=self.headers, timeout=30)
             r2.raise_for_status()
             assets_data = r2.json()
 
@@ -62,7 +62,7 @@ class ImmichProvider:
         asset_id = choice(asset_ids)
 
         logger.info(f"Downloading image {asset_id}")
-        r = requests.get(f"{self.base_url}/api/assets/{asset_id}/original", headers=self.headers)
+        r = requests.get(f"{self.base_url}/api/assets/{asset_id}/original", headers=self.headers, timeout=30)
         r.raise_for_status()
         img = Image.open(BytesIO(r.content))
         return ImageOps.exif_transpose(img)

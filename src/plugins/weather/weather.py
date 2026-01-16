@@ -714,7 +714,7 @@ class Weather(BasePlugin):
 
     def get_weather_data(self, api_key, units, lat, long):
         url = WEATHER_URL.format(lat=lat, long=long, units=units, api_key=api_key)
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
         if not 200 <= response.status_code < 300:
             logging.error(f"Failed to retrieve weather data: {response.content}")
             msg = "Failed to retrieve weather data."
@@ -724,7 +724,7 @@ class Weather(BasePlugin):
 
     def get_air_quality(self, api_key, lat, long):
         url = AIR_QUALITY_URL.format(lat=lat, long=long, api_key=api_key)
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
 
         if not 200 <= response.status_code < 300:
             logging.error(f"Failed to get air quality data: {response.content}")
@@ -735,7 +735,7 @@ class Weather(BasePlugin):
 
     def get_location(self, api_key, lat, long):
         url = GEOCODING_URL.format(lat=lat, long=long, api_key=api_key)
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
 
         if not 200 <= response.status_code < 300:
             logging.error(f"Failed to get location: {response.content}")
@@ -748,7 +748,7 @@ class Weather(BasePlugin):
     def get_open_meteo_data(self, lat, long, units, forecast_days):
         unit_params = OPEN_METEO_UNIT_PARAMS[units]
         url = OPEN_METEO_FORECAST_URL.format(lat=lat, long=long, forecast_days=forecast_days) + f"&{unit_params}"
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
 
         if not 200 <= response.status_code < 300:
             logging.error(f"Failed to retrieve Open-Meteo weather data: {response.content}")
@@ -759,7 +759,7 @@ class Weather(BasePlugin):
 
     def get_open_meteo_air_quality(self, lat, long):
         url = OPEN_METEO_AIR_QUALITY_URL.format(lat=lat, long=long)
-        response = requests.get(url)
+        response = requests.get(url, timeout=30)
         if not 200 <= response.status_code < 300:
             logging.error(f"Failed to retrieve Open-Meteo air quality data: {response.content}")
             msg = "Failed to retrieve Open-Meteo air quality data."
