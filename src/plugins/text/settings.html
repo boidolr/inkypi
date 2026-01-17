@@ -1,0 +1,110 @@
+<style>
+  .text-entries-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .text-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .text-entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .text-entry textarea {
+    resize: vertical;
+    min-height: 100px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+
+  .text-entry textarea:focus {
+      outline: none;
+      border-color: #1abc9c;
+      box-shadow: 0 0 3px rgba(26, 188, 156, 0.5);
+  }
+</style>
+
+<div class="form-group">
+    <div class="form-group nowrap">
+        <label for="title" class="form-label">Title:</label>
+        <input type="text" id="title" name="title" placeholder="Enter title (optional)" class="form-input">
+    </div>
+</div>
+
+<div class="text-entries-container" id="textEntriesContainer">
+<!-- Text entries will go here -->
+</div>
+
+<button class="header-button" id="addBtn">+ Add Text Entry</button>
+
+<script>
+    const container = document.getElementById("textEntriesContainer");
+    const addBtn = document.getElementById("addBtn");
+    let entryCount = 0;
+    const maxEntries = 10;
+
+    function createTextEntry(text = "") {
+        if (entryCount >= maxEntries) return;
+
+        entryCount++;
+        const entry = document.createElement("div");
+        entry.className = "text-entry";
+
+        entry.innerHTML = `
+        <div class="text-entry-header">
+            <label class="form-label">Text Entry ${entryCount}</label>
+            <button type="button" class="delete-button" title="Delete Text Entry">
+                <img src="{{ url_for('static', filename='icons/remove.png') }}" alt="delete entry" class="action-icon">
+            </button>
+        </div>
+        <textarea name="text-entries[]" placeholder="Enter text to display..."></textarea>
+        `;
+
+        // Set textarea value safely using .value property
+        const textarea = entry.querySelector("textarea");
+        textarea.value = text;
+
+        entry.querySelector(".delete-button").onclick = () => {
+            entry.remove();
+            updateEntryLabels();
+        };
+
+        container.appendChild(entry);
+    }
+
+    function updateEntryLabels() {
+        const entries = container.querySelectorAll(".text-entry");
+        entries.forEach((entry, index) => {
+            entry.querySelector(".text-entry-header label").textContent = `Text Entry ${index + 1}`;
+        });
+        entryCount = entries.length;
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (loadPluginSettings) {
+            document.getElementById('title').value = pluginSettings.title || '';
+            const textEntries = pluginSettings['text-entries[]'] || [];
+
+            for (let i = 0; i < Math.min(textEntries.length, maxEntries); i++) {
+                createTextEntry(textEntries[i] || '');
+            }
+        }
+
+        // Create at least one entry if none exist
+        if (entryCount === 0) createTextEntry();
+
+        // Handle Add button
+        addBtn.onclick = () => {
+            if (entryCount < maxEntries) createTextEntry();
+        };
+    });
+</script>

@@ -41,8 +41,8 @@ class AIText(BasePlugin):
             ai_client = OpenAI(api_key=api_key)
             prompt_response = AIText.fetch_text_prompt(ai_client, text_model, text_prompt)
         except Exception as e:
-            logger.exception(f"Failed to make Open AI request: {e!s}")
             msg = "Open AI request failure, please check logs."
+            logger.exception(msg)
             raise RuntimeError(msg)
 
         dimensions = device_config.get_resolution()
