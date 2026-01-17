@@ -1,4 +1,5 @@
 import logging
+import random
 
 from plugins.base_plugin.base_plugin import BasePlugin
 
@@ -13,10 +14,17 @@ class Text(BasePlugin):
 
     def generate_image(self, settings, device_config):
         title = settings.get("title", "")
-        content = settings.get("content", "")
+        text_entries = settings.get("text-entries[]", [])
 
-        if not content.strip():
-            raise RuntimeError("Text content is required.")
+        if not text_entries or not any(entry.strip() for entry in text_entries):
+            msg = "At least one text entry is required."
+            raise RuntimeError(msg)
+
+        # Filter out empty entries
+        valid_entries = [entry for entry in text_entries if entry.strip()]
+
+        # Randomly select one entry
+        content = random.choice(valid_entries)
 
         dimensions = device_config.get_resolution()
         if device_config.get_config("orientation") == "vertical":
