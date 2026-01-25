@@ -1,18 +1,17 @@
 from plugins.base_plugin.base_plugin import BasePlugin
 from PIL import Image
-from io import BytesIO
 import requests
 import logging
 import random
 
 logger = logging.getLogger(__name__)
 
-def grab_image(image_url, dimensions, timeout_ms=40000):
+def grab_image(image_url, dimensions, timeout=40):
     """Grab an image from a URL and resize it to the specified dimensions."""
     try:
-        response = requests.get(image_url, timeout=timeout_ms / 1000)
+        response = requests.get(image_url, stream=True, timeout=timeout)
         response.raise_for_status()
-        img = Image.open(BytesIO(response.content))
+        img = Image.open(response.raw)
         img = img.resize(dimensions, Image.LANCZOS)
         return img
     except Exception as e:
@@ -30,7 +29,7 @@ class Unsplash(BasePlugin):
         content_filter = settings.get('content_filter', 'low')
         color = settings.get('color')
         orientation = settings.get('orientation')
-        
+
         params = {
             'client_id': access_key,
             'content_filter': content_filter,
@@ -75,7 +74,7 @@ class Unsplash(BasePlugin):
 
         logger.info(f"Grabbing image from: {image_url}")
 
-        image = grab_image(image_url, dimensions, timeout_ms=40000)
+        image = grab_image(image_url, dimensions, timeout=40)
 
         if not image:
             raise RuntimeError("Failed to load image, please check logs.")

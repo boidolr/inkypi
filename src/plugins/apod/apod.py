@@ -7,7 +7,6 @@ For the API key, set `NASA_SECRET={API_KEY}` in your .env file.
 
 from plugins.base_plugin.base_plugin import BasePlugin
 from PIL import Image
-from io import BytesIO
 import requests
 import logging
 from random import randint
@@ -58,8 +57,8 @@ class Apod(BasePlugin):
         image_url = data.get("hdurl") or data.get("url")
 
         try:
-            img_data = requests.get(image_url, timeout=30)
-            image = Image.open(BytesIO(img_data.content))
+            img_data = requests.get(image_url, stream=True, timeout=30)
+            image = Image.open(img_data.raw)
         except Exception as e:
             logger.error(f"Failed to load APOD image: {str(e)}")
             raise RuntimeError("Failed to load APOD image.")

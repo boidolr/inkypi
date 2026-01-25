@@ -3,9 +3,7 @@ from random import choice, random
 
 import requests
 from PIL import Image, ImageColor, ImageOps
-from io import BytesIO
 
-from PIL.ImageFile import ImageFile
 from plugins.base_plugin.base_plugin import BasePlugin
 
 from utils.image_utils import pad_image_blur
@@ -39,7 +37,7 @@ class ImmichProvider:
         album = self.get_album_data(album_name)
         return [asset["id"] for asset in album.get("assets", [])]
 
-    def get_image(self, album: str) -> ImageFile | None:
+    def get_image(self, album: str) -> Image.Image | None:
         try:
             logger.info(f"Getting asset IDs for album {album}")
             asset_ids = self.get_asset_ids(album)
@@ -50,9 +48,9 @@ class ImmichProvider:
         asset_id = choice(asset_ids)
 
         logger.info(f"Downloading image {asset_id}")
-        r = requests.get(f"{self.base_url}/api/assets/{asset_id}/original", headers=self.headers, timeout=30)
+        r = requests.get(f"{self.base_url}/api/assets/{asset_id}/original", stream=True, headers=self.headers, timeout=30)
         r.raise_for_status()
-        img = Image.open(BytesIO(r.content))
+        img = Image.open(r.raw)
         img = ImageOps.exif_transpose(img)
         return img
 

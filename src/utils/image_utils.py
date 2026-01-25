@@ -1,6 +1,5 @@
 import requests
 from PIL import Image, ImageEnhance, ImageOps, ImageFilter
-from io import BytesIO
 import os
 import logging
 import hashlib
@@ -11,13 +10,12 @@ import shutil
 logger = logging.getLogger(__name__)
 
 def get_image(image_url):
-    response = requests.get(image_url, timeout=30)
-    img = None
+    response = requests.get(image_url, stream=True, timeout=30)
     if 200 <= response.status_code < 300 or response.status_code == 304:
-        img = Image.open(BytesIO(response.content))
+        return Image.open(response.raw)
     else:
         logger.error(f"Received non-200 response from {image_url}: status_code: {response.status_code}")
-    return img
+        return None
 
 def change_orientation(image, orientation, inverted=False):
     if orientation == 'horizontal':
