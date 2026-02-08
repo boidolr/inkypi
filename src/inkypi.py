@@ -105,11 +105,10 @@ def main():
         if dev_mode:
             import socket
             try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect(("8.8.8.8", 80))
-                local_ip = s.getsockname()[0]
-                s.close()
-                logger.info(f"Serving on http://{local_ip}:{port}")
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                    s.connect(("8.8.8.8", 80))
+                    local_ip = s.getsockname()[0]
+                    logger.info(f"Serving on http://{local_ip}:{port}")
             except:
                 pass  # Ignore if we can't get the IP
 
